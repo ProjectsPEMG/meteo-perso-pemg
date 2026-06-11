@@ -1,0 +1,82 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Météo Pro</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+</head>
+<body class="bg-slate-50 text-slate-800 font-sans antialiased">
+
+    <div class="max-w-7xl mx-auto flex flex-col md:flex-row gap-6 p-4">
+        
+        <aside class="w-full md:w-1/4 bg-white p-6 rounded-2xl shadow-sm border border-slate-100 h-fit">
+            <h2 class="text-xl font-bold mb-4 flex items-center gap-2">🔍 Recherche</h2>
+            
+            <form id="search-form" class="mb-6">
+                <input type="text" id="search-input" placeholder="Ville à analyser..." 
+                       class="w-full px-4 py-2 bg-slate-100 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 mb-2">
+                <button type="submit" class="w-full bg-blue-600 hover:bg-blue-700 text-white font-medium py-2 rounded-lg transition-colors">
+                    Rechercher
+                </button>
+            </form>
+
+            <h3 class="font-semibold text-slate-600 mb-3">⭐ Vos Favoris</h3>
+            <ul id="favorites-list" class="space-y-2 mb-4">
+                </ul>
+            
+            <div class="flex gap-2">
+                <input type="text" id="new-fav-input" placeholder="Nouvelle ville..." class="w-full px-3 py-2 bg-slate-100 rounded-lg focus:outline-none text-sm">
+                <button id="add-fav-btn" class="bg-slate-800 hover:bg-slate-900 text-white px-3 py-2 rounded-lg text-sm transition-colors">➕</button>
+            </div>
+        </aside>
+
+        <main class="w-full md:w-3/4 space-y-6" id="main-content">
+            <div class="bg-white p-8 rounded-2xl shadow-sm border border-slate-100 flex flex-col md:flex-row items-center justify-between">
+                <div>
+                    <h1 class="text-3xl font-bold mb-2 flex items-center gap-2">
+                        📍 <span id="city-name">Chargement...</span>
+                    </h1>
+                    <p class="text-slate-500 text-lg" id="current-desc">...</p>
+                </div>
+                <div class="text-right mt-4 md:mt-0">
+                    <div class="text-5xl font-bold text-slate-800" id="current-temp">--°C</div>
+                    <div class="text-slate-500 mt-1 flex gap-4 justify-end">
+                        <span id="current-wind">💨 -- km/h</span>
+                        <span id="current-humidity">💧 -- %</span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="bg-white p-6 rounded-2xl shadow-sm border border-slate-100 overflow-x-auto">
+                <h2 class="text-xl font-bold mb-4">📋 Coup d'œil sur la semaine</h2>
+                <table class="w-full text-left border-collapse min-w-[600px]">
+                    <thead>
+                        <tr class="border-b-2 border-slate-100 text-slate-500">
+                            <th class="py-3 px-2">📅 Jour</th>
+                            <th class="py-3 px-2 text-center">🌅 Matin</th>
+                            <th class="py-3 px-2 text-center">☀️ Aprèm</th>
+                            <th class="py-3 px-2 text-center">🌙 Soir</th>
+                            <th class="py-3 px-2">📉 Min</th>
+                            <th class="py-3 px-2">📈 Max</th>
+                            <th class="py-3 px-2">💧 Pluie</th>
+                            <th class="py-3 px-2">🕶️ UV</th>
+                        </tr>
+                    </thead>
+                    <tbody id="forecast-table-body">
+                        </tbody>
+                </table>
+            </div>
+
+            <div class="bg-white p-6 rounded-2xl shadow-sm border border-slate-100">
+                <h2 class="text-xl font-bold mb-4">🌡️ Évolution de la Température</h2>
+                <canvas id="tempChart" height="100"></canvas>
+            </div>
+            
+        </main>
+    </div>
+
+    <script src="app.js"></script>
+</body>
+</html>
