@@ -26,7 +26,7 @@ export default async function Dashboard({
       {/* HEADER & NAVIGATION */}
       <header className="max-w-6xl mx-auto flex flex-col md:flex-row justify-between items-center mb-10 gap-4">
         <div className="flex items-center gap-2 text-2xl font-bold">
-          <span className="text-[#38BDF8]">Ma</span> Météo
+          <span className="text-[#38BDF8]">Météo</span> perso
         </div>
         
         <SearchBar />

@@ -21,10 +21,9 @@ export default function MapPage() {
     <main className="min-h-screen bg-[#0D1B2A] text-slate-100 font-sans p-4 md:p-8">
       <header className="max-w-6xl mx-auto flex justify-between items-center mb-10 gap-4">
         <div className="flex items-center gap-2 text-2xl font-bold">
-          <span className="text-[#38BDF8]">Ma</span> Météo
+          <span className="text-[#38BDF8]">Météo</span> perso
         </div>
         
-        {/* Bouton optimisé avec un état de chargement */}
         <button 
           onClick={handleBack}
           disabled={isLeaving}

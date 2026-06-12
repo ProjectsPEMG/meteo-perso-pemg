@@ -9,7 +9,7 @@ import NextTopLoader from 'nextjs-toploader';
 const inter = Inter({ subsets: ["latin"] });
 
 export const metadata: Metadata = {
-  title: "SkyDash - Ma Météo Personnalisée",
+  title: "Météo perso",
   description: "Tableau de bord météo complet et dynamique",
 };
 
