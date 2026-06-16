@@ -6,10 +6,38 @@ import WeatherChart from "./WeatherChart";
 import { getWeatherIcon } from "@/lib/weather";
 import { Calendar, Droplets, Wind, Sun, Navigation, ChevronDown, ChevronUp } from "lucide-react";
 
+// Fonction pour convertir les degrés du vent en points cardinaux
 const getWindDirection = (degree: number) => {
   const directions = ['N', 'NE', 'E', 'SE', 'S', 'SO', 'O', 'NO'];
   const index = Math.round(((degree %= 360) < 0 ? degree + 360 : degree) / 45) % 8;
   return { label: directions[index], rotate: degree };
+};
+
+// Générateur de couleur exact basé sur le gradient (Bleu -> Cyan -> Jaune -> Orange -> Rouge -> Violet)
+const getTempColor = (temp: number) => {
+  const stops = [
+    { t: -10, c: [59, 130, 246] },   // Blue
+    { t: 0, c: [59, 130, 246] },     // Blue
+    { t: 10, c: [45, 212, 191] },    // Cyan
+    { t: 20, c: [250, 204, 21] },    // Yellow
+    { t: 30, c: [249, 115, 22] },    // Orange
+    { t: 35, c: [239, 68, 68] },     // Red
+    { t: 40, c: [168, 85, 247] },    // Purple
+    { t: 50, c: [168, 85, 247] }     // Purple
+  ];
+  
+  const clampedTemp = Math.max(-10, Math.min(50, temp));
+  
+  for (let i = 0; i < stops.length - 1; i++) {
+    if (clampedTemp >= stops[i].t && clampedTemp <= stops[i+1].t) {
+      const ratio = (clampedTemp - stops[i].t) / (stops[i+1].t - stops[i].t);
+      const r = Math.round(stops[i].c[0] + ratio * (stops[i+1].c[0] - stops[i].c[0]));
+      const g = Math.round(stops[i].c[1] + ratio * (stops[i+1].c[1] - stops[i].c[1]));
+      const b = Math.round(stops[i].c[2] + ratio * (stops[i+1].c[2] - stops[i].c[2]));
+      return `rgb(${r}, ${g}, ${b})`;
+    }
+  }
+  return '#f97316';
 };
 
 export default function WeatherDashboardContent({ daily, hourly }: { daily: any; hourly: any }) {
@@ -75,63 +103,76 @@ export default function WeatherDashboardContent({ daily, hourly }: { daily: any;
                 key={time} 
                 className={`flex flex-col p-4 rounded-2xl border transition-colors ${isToday ? "bg-[#0D1B2A]/80 border-[#38BDF8]/40 shadow-md" : "bg-[#0D1B2A]/40 border-slate-700/50 hover:bg-[#0D1B2A]/70"}`}
               >
-                <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4">
+                <div className="flex flex-col md:flex-row md:items-center w-full gap-4 md:gap-0">
                   
-                  {/* GROUPE 1 : DATE, ICÔNE ET TEMPÉRATURES (Premiers éléments visibles) */}
-                  <div className="flex items-center justify-between lg:justify-start gap-6 lg:w-[45%]">
-                    <div className="flex items-center gap-4">
-                      <div className="w-12 h-12 flex items-center justify-center bg-[#1B263B] rounded-xl border border-slate-700 shadow-inner text-2xl shrink-0">
-                        {getWeatherIcon(daily.weather_code[index])}
-                      </div>
-                      <div className="min-w-0">
-                        <p className="font-bold text-slate-100 capitalize truncate text-sm md:text-base">
-                          {isToday ? "Aujourd'hui" : date.toLocaleDateString("fr-FR", { weekday: "long" })}
-                        </p>
-                        <p className="text-xs text-slate-400">{date.toLocaleDateString("fr-FR", { day: "numeric", month: "long" })}</p>
-                      </div>
+                  {/* COLONNE 1 : DATE & ICÔNE (Largeur fixe de 220px) */}
+                  <div className="flex items-center gap-4 md:w-[220px] shrink-0">
+                    <div className="w-12 h-12 flex items-center justify-center bg-[#1B263B] rounded-xl border border-slate-700 shadow-inner text-2xl shrink-0">
+                      {getWeatherIcon(daily.weather_code[index])}
                     </div>
-
-                    {/* Températures mises en évidence directement après la date */}
-                    <div className="flex items-center gap-2">
-                      <span className="font-bold text-xl md:text-2xl text-orange-400">{Math.round(dayMax)}°</span>
-                      <span className="text-slate-500 text-lg">/</span>
-                      <span className="font-semibold text-slate-400 text-lg md:text-xl">{Math.round(dayMin)}°</span>
+                    <div className="min-w-0">
+                      <p className="font-bold text-slate-100 capitalize truncate text-sm md:text-base">
+                        {isToday ? "Aujourd'hui" : date.toLocaleDateString("fr-FR", { weekday: "long" })}
+                      </p>
+                      <p className="text-xs text-slate-400">{date.toLocaleDateString("fr-FR", { day: "numeric", month: "long" })}</p>
                     </div>
                   </div>
 
-                  {/* GROUPE 2 : STATISTIQUES (Pluie, Vent, UV) */}
-                  <div className="grid grid-cols-3 gap-2 lg:w-[40%] text-xs font-medium text-slate-300">
-                    <div className="flex flex-col">
+                  {/* COLONNE 2 : TEMPÉRATURES (Largeur fixe de 120px) */}
+                  <div className="flex items-center gap-2 md:w-[120px] shrink-0">
+                    <span 
+                      className="font-bold text-2xl drop-shadow-sm" 
+                      style={{ color: getTempColor(dayMax) }}
+                    >
+                      {Math.round(dayMax)}°
+                    </span>
+                    <span className="text-slate-500 text-lg">/</span>
+                    <span className="font-semibold text-slate-400 text-lg">{Math.round(dayMin)}°</span>
+                  </div>
+
+                  {/* COLONNES 3, 4, 5 : STATISTIQUES */}
+                  <div className="grid grid-cols-3 gap-2 md:flex md:items-start md:gap-0 shrink-0 text-xs font-medium text-slate-300">
+                    
+                    {/* COLONNE 3 : PLUIE (Largeur fixe de 100px) */}
+                    <div className="flex flex-col md:w-[100px]">
                       <div className="flex items-center gap-1.5 text-[#38BDF8]">
-                        <Droplets size={14} /> <span>{daily.precipitation_sum[index]} mm</span>
+                        <Droplets size={14} className="shrink-0" /> 
+                        <span className="truncate">{daily.precipitation_sum[index]} mm</span>
                       </div>
-                      {daily.precipitation_probability_max[index] > 0 && (
-                        <span className="text-slate-500 text-[10px] ml-5">{daily.precipitation_probability_max[index]}% de risque</span>
-                      )}
+                      {/* Conteneur de hauteur fixe (16px) pour éviter que l'absence de % ne décale les lignes */}
+                      <div className="h-[16px] flex items-center mt-0.5">
+                        {daily.precipitation_probability_max[index] > 0 && (
+                          <span className="text-slate-500 text-[10px] ml-5 truncate">{daily.precipitation_probability_max[index]}% de risque</span>
+                        )}
+                      </div>
                     </div>
                     
-                    <div className="flex flex-col">
+                    {/* COLONNE 4 : VENT (Largeur fixe de 100px) */}
+                    <div className="flex flex-col md:w-[100px]">
                       <div className="flex items-center gap-1.5">
-                        <Wind size={14} className="text-violet-400" />
-                        <span className="font-mono">{Math.round(daily.wind_speed_10m_max[index])} km/h</span>
+                        <Wind size={14} className="text-violet-400 shrink-0" />
+                        <span className="font-mono truncate">{Math.round(daily.wind_speed_10m_max[index])} km/h</span>
                       </div>
-                      <div className="flex items-center gap-1 text-[10px] text-slate-500 ml-5 mt-0.5">
-                        <Navigation size={10} style={{ transform: `rotate(${windDir.rotate}deg)` }} className="text-slate-400" />
-                        <span>{windDir.label}</span>
+                      <div className="h-[16px] flex items-center gap-1 text-[10px] text-slate-500 ml-5 mt-0.5">
+                        <Navigation size={10} style={{ transform: `rotate(${windDir.rotate}deg)` }} className="text-slate-400 shrink-0" />
+                        <span className="truncate">{windDir.label}</span>
                       </div>
                     </div>
                     
-                    <div className="flex items-center gap-1.5">
-                      <Sun size={14} className="text-[#FBBF24]" />
-                      <span className="font-mono">UV {Math.round(daily.uv_index_max[index])}</span>
+                    {/* COLONNE 5 : UV (Largeur fixe de 80px) */}
+                    <div className="flex flex-col md:w-[80px]">
+                      <div className="flex items-center gap-1.5">
+                        <Sun size={14} className="text-[#FBBF24] shrink-0" />
+                        <span className="font-mono truncate">UV {Math.round(daily.uv_index_max[index])}</span>
+                      </div>
                     </div>
                   </div>
 
-                  {/* GROUPE 3 : BOUTON VOIR + */}
-                  <div className="lg:w-[15%] flex justify-end">
+                  {/* COLONNE 6 : BOUTON (Prend tout l'espace restant pour s'aligner à droite) */}
+                  <div className="mt-2 md:mt-0 md:flex-grow flex md:justify-end shrink-0">
                     <button 
                       onClick={() => setExpandedDay(isExpanded ? null : time)}
-                      className={`flex items-center gap-1 text-xs font-bold px-3 py-1.5 rounded-lg transition-colors ${isExpanded ? "bg-[#38BDF8]/20 text-[#38BDF8]" : "bg-slate-800 text-slate-400 hover:text-slate-200 hover:bg-slate-700"}`}
+                      className={`flex items-center justify-center w-full md:w-auto gap-1 text-xs font-bold px-3 py-1.5 rounded-lg transition-colors ${isExpanded ? "bg-[#38BDF8]/20 text-[#38BDF8]" : "bg-slate-800 text-slate-400 hover:text-slate-200 hover:bg-slate-700"}`}
                     >
                       {isExpanded ? "Fermer" : "Voir +"}
                       {isExpanded ? <ChevronUp size={14} /> : <ChevronDown size={14} />}
@@ -153,9 +194,15 @@ export default function WeatherDashboardContent({ daily, hourly }: { daily: any;
                           <div key={hTime} className="flex flex-col items-center justify-between gap-2 min-w-[56px] p-2 rounded-xl bg-slate-800/30 hover:bg-slate-700/50 transition-colors border border-slate-700/30">
                             <span className="text-[11px] font-medium text-slate-400">{hDate.getHours()}h</span>
                             <span className="text-2xl my-1">{getWeatherIcon(hourly.weather_code[hIndex])}</span>
-                            <span className="text-sm font-bold text-slate-200">{Math.round(hourly.temperature_2m[hIndex])}°</span>
                             
-                            {/* AFFICHAGE PLUIE : MM ET PROBABILITÉ */}
+                            {/* Température horaire colorée avec le gradient */}
+                            <span 
+                              className="text-sm font-bold"
+                              style={{ color: getTempColor(hourly.temperature_2m[hIndex]) }}
+                            >
+                              {Math.round(hourly.temperature_2m[hIndex])}°
+                            </span>
+                            
                             <div className="min-h-[24px] flex flex-col items-center justify-center">
                               {hourly.precipitation[hIndex] > 0 && (
                                 <span className="text-[11px] text-[#38BDF8] font-bold leading-tight">{hourly.precipitation[hIndex]} mm</span>
