@@ -18,7 +18,12 @@ export default function FavoritesDropdown() {
 
   const loadFavorites = () => {
     const saved = localStorage.getItem("weather_favorites");
-    if (saved) setFavorites(JSON.parse(saved));
+    if (saved) {
+      const parsedFavorites = JSON.parse(saved);
+      // 🛡️ SÉCURITÉ : On filtre automatiquement les favoris corrompus (qui n'ont pas de nom)
+      const validFavorites = parsedFavorites.filter((f: any) => f && f.name && f.name.trim() !== "");
+      setFavorites(validFavorites);
+    }
   };
 
   useEffect(() => {
@@ -30,14 +35,19 @@ export default function FavoritesDropdown() {
 
   const handleSelect = (city: City) => {
     setIsOpen(false);
-    router.push(`/?lat=${city.lat}&lon=${city.lon}&city=${city.name}`);
+    // Sécurité supplémentaire sur l'URL
+    router.push(`/?lat=${city.lat}&lon=${city.lon}&city=${city?.name || "Inconnu"}`);
   };
 
   const deleteFavorite = (e: React.MouseEvent, name: string) => {
     e.stopPropagation(); // Empêche de cliquer sur la ville en voulant la supprimer
-    const updated = favorites.filter(f => f.name !== name);
+    // 🛡️ SÉCURITÉ : Ajout du point d'interrogation (f?.name)
+    const updated = favorites.filter(f => f?.name !== name);
     localStorage.setItem("weather_favorites", JSON.stringify(updated));
     setFavorites(updated);
+    
+    // On prévient aussi le reste de l'appli (comme le bouton de la page d'accueil) de la suppression
+    window.dispatchEvent(new Event("favorites_updated"));
   };
 
   return (
@@ -64,15 +74,16 @@ export default function FavoritesDropdown() {
             <p className="text-xs text-slate-400 p-4 text-center">Aucune ville en favori</p>
           ) : (
             <ul className="divide-y divide-slate-700/50 max-h-60 overflow-y-auto">
-              {favorites.map((city) => (
+              {favorites.map((city, index) => (
                 <li 
-                  key={city.name}
+                  // 🛡️ SÉCURITÉ : Index en secours si le nom a un problème
+                  key={city?.name || index}
                   onClick={() => handleSelect(city)}
                   className="flex items-center justify-between px-4 py-3 hover:bg-slate-800 cursor-pointer transition-colors group"
                 >
                   <div className="flex items-center gap-2 min-w-0">
                     <MapPin size={14} className="text-[#38BDF8] shrink-0" />
-                    <span className="text-sm font-medium text-slate-200 truncate">{city.name}</span>
+                    <span className="text-sm font-medium text-slate-200 truncate">{city?.name}</span>
                   </div>
                   <button 
                     onClick={(e) => deleteFavorite(e, city.name)}
