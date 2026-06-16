@@ -1,5 +1,6 @@
 // src/app/layout.tsx
-import type { Metadata } from "next";
+
+import type { Metadata, Viewport } from "next";
 import { Inter } from "next/font/google";
 import "./globals.css";
 
@@ -9,8 +10,17 @@ import NextTopLoader from 'nextjs-toploader';
 const inter = Inter({ subsets: ["latin"] });
 
 export const metadata: Metadata = {
-  title: "Météo perso",
-  description: "Tableau de bord météo complet et dynamique",
+  title: "Météo Perso",
+  description: "Votre application météo ultra-précise",
+  manifest: "/manifest.json",
+};
+
+export const viewport: Viewport = {
+  themeColor: "#0D1B2A",
+  width: "device-width",
+  initialScale: 1,
+  maximumScale: 1,
+  userScalable: false,
 };
 
 export default function RootLayout({
