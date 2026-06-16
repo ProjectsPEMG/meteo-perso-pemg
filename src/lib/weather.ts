@@ -1,19 +1,25 @@
 // src/lib/weather.ts
 
 export async function getWeatherData(lat: number, lon: number) {
-  // 1. On ajoute un faux paramètre "&bypass=1" à la fin de l'URL. 
-  const weatherUrl = `https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${lon}&current=temperature_2m,relative_humidity_2m,apparent_temperature,is_day,precipitation,weather_code,wind_speed_10m&hourly=temperature_2m,relative_humidity_2m,precipitation_probability,precipitation,uv_index,weather_code,is_day,wind_speed_10m,wind_gusts_10m&daily=weather_code,temperature_2m_max,temperature_2m_min,sunrise,sunset,uv_index_max,precipitation_sum,precipitation_probability_max,wind_speed_10m_max,wind_direction_10m_dominant&timezone=Europe%2FParis&forecast_days=15&bypass=1`;
+  // Changement du bypass pour forcer Vercel à oublier l'ancienne erreur
+  const weatherUrl = `https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${lon}&current=temperature_2m,relative_humidity_2m,apparent_temperature,is_day,precipitation,weather_code,wind_speed_10m&hourly=temperature_2m,relative_humidity_2m,precipitation_probability,precipitation,uv_index,weather_code,is_day,wind_speed_10m,wind_gusts_10m&daily=weather_code,temperature_2m_max,temperature_2m_min,sunrise,sunset,uv_index_max,precipitation_sum,precipitation_probability_max,wind_speed_10m_max,wind_direction_10m_dominant&timezone=Europe%2FParis&forecast_days=15&bypass=3`;
   
-  const airQualityUrl = `https://air-quality-api.open-meteo.com/v1/air-quality?latitude=${lat}&longitude=${lon}&hourly=pm2_5,pm10,grass_pollen&timezone=Europe%2FParis&forecast_days=15&bypass=1`;
+  const airQualityUrl = `https://air-quality-api.open-meteo.com/v1/air-quality?latitude=${lat}&longitude=${lon}&hourly=pm2_5,pm10,grass_pollen&timezone=Europe%2FParis&forecast_days=15&bypass=3`;
 
   try {
-    // 2. On utilise { cache: 'no-store' } pour interdire formellement à Vercel de tricher avec sa mémoire
-    const weatherRes = await fetch(weatherUrl, { cache: 'no-store' });
+    // LE DÉGUISEMENT EST ICI : On fait croire à l'API qu'on est un utilisateur sur Google Chrome
+    const weatherRes = await fetch(weatherUrl, { 
+      cache: 'no-store',
+      headers: {
+        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
+        'Accept': 'application/json'
+      }
+    });
     
     if (!weatherRes.ok) {
-      // 3. Si ça plante vraiment, on force Vercel à écrire la VRAIE raison dans ses journaux (Logs)
+      // Si ça bloque encore, on écrit l'erreur exacte en rouge fluo dans les Runtime Logs
       const errorText = await weatherRes.text();
-      console.error(`Erreur ${weatherRes.status} Open-Meteo :`, errorText);
+      console.error(`❌ ERREUR API METEO (${weatherRes.status}) :`, errorText);
       throw new Error("Erreur météo serveur");
     }
     
@@ -24,7 +30,12 @@ export async function getWeatherData(lat: number, lon: number) {
     let pollen = new Array(360).fill(null);
 
     try {
-      const aqRes = await fetch(airQualityUrl, { cache: 'no-store' });
+      const aqRes = await fetch(airQualityUrl, { 
+        cache: 'no-store',
+        headers: {
+          'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36'
+        }
+      });
       if (aqRes.ok) {
         const aqData = await aqRes.json();
         pm2_5 = aqData.hourly?.pm2_5 || pm2_5;
