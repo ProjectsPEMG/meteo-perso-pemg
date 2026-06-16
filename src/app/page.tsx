@@ -21,28 +21,31 @@ export default async function Dashboard({
   const current = weather.current;
 
   return (
-    <main className="min-h-screen bg-[#0D1B2A] text-slate-100 font-sans p-4 md:p-8 selection:bg-[#38BDF8]">
+    <div className="min-h-screen bg-[#0D1B2A] text-slate-100 font-sans selection:bg-[#38BDF8]">
       
-      {/* HEADER & NAVIGATION */}
-      <header className="max-w-6xl mx-auto flex flex-col md:flex-row justify-between items-center mb-10 gap-4">
-        <div className="flex items-center gap-2 text-2xl font-bold">
-          <span className="text-[#38BDF8]">Météo</span> perso
-        </div>
-        
-        <SearchBar />
-        
-        <div className="flex gap-4">
-          <FavoritesDropdown />
-          <Link href="/map" className="p-2 bg-[#1B263B] rounded-full hover:bg-slate-700 transition">
-            <Map size={20} className="text-[#34D399]" />
-          </Link>
+      {/* HEADER & NAVIGATION (Fixe en haut avec effet verre flouté) */}
+      <header className="sticky top-0 z-50 w-full bg-[#0D1B2A]/80 backdrop-blur-md border-b border-slate-700/50 p-4 md:px-8 mb-6 shadow-sm">
+        <div className="max-w-6xl mx-auto flex flex-col md:flex-row justify-between items-center gap-4">
+          <div className="flex items-center gap-2 text-2xl font-bold">
+            <span className="text-[#38BDF8]">Météo</span> Perso
+          </div>
+          
+          <SearchBar />
+          
+          <div className="flex gap-4">
+            <FavoritesDropdown />
+            <Link href="/map" className="p-2 bg-[#1B263B] rounded-full hover:bg-slate-700 transition">
+              <Map size={20} className="text-[#34D399]" />
+            </Link>
+          </div>
         </div>
       </header>
 
-      <div className="max-w-6xl mx-auto grid grid-cols-1 lg:grid-cols-3 gap-6 items-start">
+      {/* CONTENU PRINCIPAL */}
+      <main className="max-w-6xl mx-auto px-4 md:px-8 pb-8 grid grid-cols-1 lg:grid-cols-3 gap-6 items-start">
         
-        {/* HERO SECTION : METEO ACTUELLE */}
-        <section className="lg:col-span-1 bg-gradient-to-br from-[#1B263B] to-[#0D1B2A] p-6 rounded-3xl border border-slate-700 shadow-xl relative overflow-hidden sticky top-8">
+        {/* HERO SECTION : METEO ACTUELLE (Collant uniquement sur PC) */}
+        <section className="lg:col-span-1 bg-gradient-to-br from-[#1B263B] to-[#0D1B2A] p-6 rounded-3xl border border-slate-700 shadow-xl relative overflow-hidden lg:sticky lg:top-28">
           <div className="absolute -top-10 -right-10 text-9xl opacity-10 pointer-events-none">
             {getWeatherIcon(current.weather_code, current.is_day)}
           </div>
@@ -89,7 +92,7 @@ export default async function Dashboard({
         {/* CONTENU CENTRAL DYNAMIQUE (TABLEAU + GRAPH) */}
         <WeatherDashboardContent daily={weather.daily} hourly={weather.hourly} />
 
-      </div>
-    </main>
+      </main>
+    </div>
   );
 }
