@@ -36,12 +36,11 @@ export default async function Dashboard({
         <div className="max-w-6xl mx-auto flex flex-col md:flex-row justify-between items-center gap-4">
           
           {/* LIGNE 1 : LOGO + PETIT BANDEAU MÉTÉO */}
-          <div className="flex items-center justify-between w-full md:w-auto gap-4">
-            <div className="flex items-center gap-2 text-xl md:text-2xl font-bold shrink-0">
+          <div className="flex items-center justify-between w-full md:w-auto gap-4 shrink-0">
+            <div className="flex items-center gap-2 text-xl md:text-2xl font-bold">
               <span className="text-[#38BDF8]">Météo</span> Perso
             </div>
             
-            {/* Le fameux petit bandeau intégré */}
             <div className="flex items-center gap-2 md:gap-3 bg-[#1B263B]/60 border border-slate-700/50 px-3 py-1.5 rounded-full shadow-inner">
               <span className="text-sm font-semibold text-slate-200 truncate max-w-[100px] md:max-w-[150px]">{cityName}</span>
               <div className="flex items-center gap-1.5 border-l border-slate-600/50 pl-2 md:pl-3">
@@ -51,9 +50,9 @@ export default async function Dashboard({
             </div>
           </div>
 
-          {/* LIGNE 2 : RECHERCHE + FAVORIS */}
-          <div className="flex w-full md:w-auto items-center justify-between gap-4">
-            <div className="flex-grow md:flex-grow-0">
+          {/* LIGNE 2 : RECHERCHE + FAVORIS (Désormais flexible et aérée sur PC) */}
+          <div className="flex w-full md:flex-1 items-center justify-between md:justify-end gap-4">
+            <div className="flex-grow md:max-w-md">
               <SearchBar />
             </div>
             <div className="flex gap-3 shrink-0 relative">
