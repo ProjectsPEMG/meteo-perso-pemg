@@ -96,6 +96,32 @@ export default function WeatherDashboardContent({ daily, hourly }: { daily: any;
             const dayMax = daily.temperature_2m_max[index];
             const windDir = getWindDirection(daily.wind_direction_10m_dominant[index]);
 
+            // === ALGORITHME DE REPRÉSENTATION DU JOUR ===
+            // On calcule l'icône la plus fréquente pendant les heures de jour (is_day === 1)
+            const datePrefix = time.split('T')[0];
+            const daytimeCodes: number[] = [];
+            
+            hourly.time.forEach((hTime: string, hIndex: number) => {
+              if (hTime.startsWith(datePrefix) && hourly.is_day && hourly.is_day[hIndex] === 1) {
+                daytimeCodes.push(hourly.weather_code[hIndex]);
+              }
+            });
+
+            // Par défaut, on prend le code de l'API. Si on a trouvé des heures de jour, on calcule le code dominant.
+            let representativeCode = daily.weather_code[index];
+            if (daytimeCodes.length > 0) {
+              const counts: Record<number, number> = {};
+              let maxCount = 0;
+              for (const code of daytimeCodes) {
+                counts[code] = (counts[code] || 0) + 1;
+                if (counts[code] > maxCount) {
+                  maxCount = counts[code];
+                  representativeCode = code;
+                }
+              }
+            }
+            // ===========================================
+
             return (
               <div 
                 key={time} 
@@ -105,8 +131,8 @@ export default function WeatherDashboardContent({ daily, hourly }: { daily: any;
                   
                   <div className="flex items-center gap-4 md:w-[220px] shrink-0">
                     <div className="w-12 h-12 flex items-center justify-center bg-[#1B263B] rounded-xl border border-slate-700 shadow-inner text-2xl shrink-0">
-                      {/* Pour le résumé du jour, on force l'icône de jour */}
-                      {getWeatherIcon(daily.weather_code[index], 1)}
+                      {/* On utilise notre code météo calculé (representativeCode) au lieu de celui de l'API */}
+                      {getWeatherIcon(representativeCode, 1)}
                     </div>
                     <div className="min-w-0">
                       <p className="font-bold text-slate-100 capitalize truncate text-sm md:text-base">
@@ -181,7 +207,6 @@ export default function WeatherDashboardContent({ daily, hourly }: { daily: any;
                         
                         const hWindDir = hourly.wind_direction_10m ? getWindDirection(hourly.wind_direction_10m[hIndex]) : { label: '-', rotate: 0 };
                         const hUV = hourly.uv_index ? Math.round(hourly.uv_index[hIndex]) : 0;
-                        // On récupère bien si c'est le jour ou la nuit (par défaut jour)
                         const hIsDay = hourly.is_day ? hourly.is_day[hIndex] : 1;
 
                         return (
@@ -189,7 +214,6 @@ export default function WeatherDashboardContent({ daily, hourly }: { daily: any;
                             
                             <span className="text-[11px] font-medium text-slate-400">{hDate.getHours()}h</span>
                             
-                            {/* C'est ICI la correction : on passe hIsDay à getWeatherIcon ! */}
                             <span className="text-2xl my-1">{getWeatherIcon(hourly.weather_code[hIndex], hIsDay)}</span>
                             
                             <span className="text-sm font-bold" style={{ color: getTempColor(hourly.temperature_2m[hIndex]) }}>
