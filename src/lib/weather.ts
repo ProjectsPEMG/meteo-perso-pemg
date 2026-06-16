@@ -1,41 +1,55 @@
 // src/lib/weather.ts
 
 export async function getWeatherData(lat: number, lon: number) {
-  // AJOUT dans &daily= : wind_speed_10m_max et wind_direction_10m_dominant
-  const weatherUrl = `https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${lon}&current=temperature_2m,relative_humidity_2m,apparent_temperature,is_day,precipitation,weather_code,wind_speed_10m&hourly=temperature_2m,relative_humidity_2m,precipitation_probability,precipitation,uv_index,weather_code,is_day,wind_speed_10m,wind_gusts_10m&daily=weather_code,temperature_2m_max,temperature_2m_min,sunrise,sunset,uv_index_max,precipitation_sum,precipitation_probability_max,wind_speed_10m_max,wind_direction_10m_dominant&timezone=auto&forecast_days=15`;
-  const airQualityUrl = `https://air-quality-api.open-meteo.com/v1/air-quality?latitude=${lat}&longitude=${lon}&hourly=pm2_5,pm10,grass_pollen&timezone=auto&forecast_days=15`;
-
-  const weatherRes = await fetch(weatherUrl, { next: { revalidate: 3600 } });
-  if (!weatherRes.ok) throw new Error("Erreur météo");
-  const weatherData = await weatherRes.json();
-
-  // On initialise avec des "null". Si l'API plante sur Codespaces, 
-  // le graphique sera vide (transparent) au lieu de montrer de fausses courbes.
-  let pm2_5 = new Array(360).fill(null);
-  let pm10 = new Array(360).fill(null);
-  let pollen = new Array(360).fill(null);
+  // 1. On remplace "timezone=auto" par "timezone=Europe%2FParis" pour éviter le crash serveur
+  const weatherUrl = `https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${lon}&current=temperature_2m,relative_humidity_2m,apparent_temperature,is_day,precipitation,weather_code,wind_speed_10m&hourly=temperature_2m,relative_humidity_2m,precipitation_probability,precipitation,uv_index,weather_code,is_day,wind_speed_10m,wind_gusts_10m&daily=weather_code,temperature_2m_max,temperature_2m_min,sunrise,sunset,uv_index_max,precipitation_sum,precipitation_probability_max,wind_speed_10m_max,wind_direction_10m_dominant&timezone=Europe%2FParis&forecast_days=15`;
+  const airQualityUrl = `https://air-quality-api.open-meteo.com/v1/air-quality?latitude=${lat}&longitude=${lon}&hourly=pm2_5,pm10,grass_pollen&timezone=Europe%2FParis&forecast_days=15`;
 
   try {
-    const aqRes = await fetch(airQualityUrl, { next: { revalidate: 3600 } });
-    if (aqRes.ok) {
-      const aqData = await aqRes.json();
-      pm2_5 = aqData.hourly?.pm2_5 || pm2_5;
-      pm10 = aqData.hourly?.pm10 || pm10;
-      pollen = aqData.hourly?.grass_pollen || pollen;
-    }
-  } catch (error) {
-    console.warn("API Qualité de l'air bloquée temporairement, affichage vide.");
-  }
+    // 2. On ajoute un Header "User-Agent" pour ne pas être bloqué par le filtre anti-bot de l'API
+    const weatherRes = await fetch(weatherUrl, { 
+      next: { revalidate: 3600 },
+      headers: {
+        'User-Agent': 'MeteoPersoApp/1.0',
+        'Accept': 'application/json'
+      }
+    });
+    
+    if (!weatherRes.ok) throw new Error("Erreur météo serveur");
+    const weatherData = await weatherRes.json();
 
-  return {
-    ...weatherData,
-    hourly: {
-      ...weatherData.hourly,
-      pm2_5,
-      pm10,
-      pollen,
+    let pm2_5 = new Array(360).fill(null);
+    let pm10 = new Array(360).fill(null);
+    let pollen = new Array(360).fill(null);
+
+    try {
+      const aqRes = await fetch(airQualityUrl, { 
+        next: { revalidate: 3600 },
+        headers: { 'User-Agent': 'MeteoPersoApp/1.0' }
+      });
+      if (aqRes.ok) {
+        const aqData = await aqRes.json();
+        pm2_5 = aqData.hourly?.pm2_5 || pm2_5;
+        pm10 = aqData.hourly?.pm10 || pm10;
+        pollen = aqData.hourly?.grass_pollen || pollen;
+      }
+    } catch (error) {
+      console.warn("API Qualité de l'air bloquée");
     }
-  };
+
+    return {
+      ...weatherData,
+      hourly: {
+        ...weatherData.hourly,
+        pm2_5,
+        pm10,
+        pollen,
+      }
+    };
+  } catch (error) {
+    console.error("L'API météo a rejeté la requête Vercel:", error);
+    throw error; 
+  }
 }
 
 export function getWeatherIcon(code: number, isDay: number = 1) {
