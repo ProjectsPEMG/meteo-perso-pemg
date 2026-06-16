@@ -6,14 +6,12 @@ import WeatherChart from "./WeatherChart";
 import { getWeatherIcon } from "@/lib/weather";
 import { Calendar, Droplets, Wind, Sun, Navigation, ChevronDown, ChevronUp } from "lucide-react";
 
-// Fonction pour convertir les degrés du vent en points cardinaux
 const getWindDirection = (degree: number) => {
   const directions = ['N', 'NE', 'E', 'SE', 'S', 'SO', 'O', 'NO'];
   const index = Math.round(((degree %= 360) < 0 ? degree + 360 : degree) / 45) % 8;
   return { label: directions[index], rotate: degree };
 };
 
-// Générateur de couleur exact basé sur le gradient
 const getTempColor = (temp: number) => {
   const stops = [
     { t: -10, c: [59, 130, 246] },   // Blue
@@ -105,10 +103,10 @@ export default function WeatherDashboardContent({ daily, hourly }: { daily: any;
               >
                 <div className="flex flex-col md:flex-row md:items-center w-full gap-4 md:gap-0">
                   
-                  {/* COLONNE 1 : DATE & ICÔNE */}
                   <div className="flex items-center gap-4 md:w-[220px] shrink-0">
                     <div className="w-12 h-12 flex items-center justify-center bg-[#1B263B] rounded-xl border border-slate-700 shadow-inner text-2xl shrink-0">
-                      {getWeatherIcon(daily.weather_code[index])}
+                      {/* Pour le résumé du jour, on force l'icône de jour */}
+                      {getWeatherIcon(daily.weather_code[index], 1)}
                     </div>
                     <div className="min-w-0">
                       <p className="font-bold text-slate-100 capitalize truncate text-sm md:text-base">
@@ -118,7 +116,6 @@ export default function WeatherDashboardContent({ daily, hourly }: { daily: any;
                     </div>
                   </div>
 
-                  {/* COLONNE 2 : TEMPÉRATURES */}
                   <div className="flex items-center gap-2 md:w-[120px] shrink-0">
                     <span className="font-bold text-2xl drop-shadow-sm" style={{ color: getTempColor(dayMax) }}>
                       {Math.round(dayMax)}°
@@ -129,7 +126,6 @@ export default function WeatherDashboardContent({ daily, hourly }: { daily: any;
                     </span>
                   </div>
 
-                  {/* COLONNES 3, 4, 5 : STATISTIQUES */}
                   <div className="grid grid-cols-3 gap-2 md:flex md:items-start md:gap-0 shrink-0 text-xs font-medium text-slate-300">
                     <div className="flex flex-col md:w-[100px]">
                       <div className="flex items-center gap-1.5 text-[#38BDF8]">
@@ -162,7 +158,6 @@ export default function WeatherDashboardContent({ daily, hourly }: { daily: any;
                     </div>
                   </div>
 
-                  {/* COLONNE 6 : BOUTON */}
                   <div className="mt-2 md:mt-0 md:flex-grow flex md:justify-end shrink-0">
                     <button 
                       onClick={() => setExpandedDay(isExpanded ? null : time)}
@@ -174,7 +169,7 @@ export default function WeatherDashboardContent({ daily, hourly }: { daily: any;
                   </div>
                 </div>
 
-                {/* ACCORDÉON : DÉTAIL HEURE PAR HEURE (MAJ AVEC VENT ET UV) */}
+                {/* ACCORDÉON : DÉTAIL HEURE PAR HEURE */}
                 {isExpanded && (
                   <div className="mt-4 pt-4 border-t border-slate-700/50 animate-in slide-in-from-top-2 duration-300">
                     <p className="text-xs font-bold text-slate-400 mb-3 ml-1 uppercase tracking-wider">Évolution de la journée</p>
@@ -184,24 +179,25 @@ export default function WeatherDashboardContent({ daily, hourly }: { daily: any;
                         
                         const hDate = new Date(hTime);
                         
-                        // Sécurité pour la direction du vent (au cas où elle n'est pas encore chargée)
                         const hWindDir = hourly.wind_direction_10m ? getWindDirection(hourly.wind_direction_10m[hIndex]) : { label: '-', rotate: 0 };
                         const hUV = hourly.uv_index ? Math.round(hourly.uv_index[hIndex]) : 0;
+                        // On récupère bien si c'est le jour ou la nuit (par défaut jour)
+                        const hIsDay = hourly.is_day ? hourly.is_day[hIndex] : 1;
 
                         return (
                           <div key={hTime} className="flex flex-col items-center justify-start gap-1 min-w-[72px] p-2 rounded-xl bg-[#0D1B2A]/50 hover:bg-[#0D1B2A] transition-colors border border-slate-700/50">
                             
-                            {/* Heure, Icône, Température */}
                             <span className="text-[11px] font-medium text-slate-400">{hDate.getHours()}h</span>
-                            <span className="text-2xl my-1">{getWeatherIcon(hourly.weather_code[hIndex])}</span>
+                            
+                            {/* C'est ICI la correction : on passe hIsDay à getWeatherIcon ! */}
+                            <span className="text-2xl my-1">{getWeatherIcon(hourly.weather_code[hIndex], hIsDay)}</span>
+                            
                             <span className="text-sm font-bold" style={{ color: getTempColor(hourly.temperature_2m[hIndex]) }}>
                               {Math.round(hourly.temperature_2m[hIndex])}°
                             </span>
                             
-                            {/* Ligne séparatrice */}
                             <div className="w-full h-px bg-slate-700/50 my-1" />
                             
-                            {/* Pluie */}
                             <div className="flex flex-col items-center justify-center min-h-[24px]">
                               {hourly.precipitation[hIndex] > 0 ? (
                                 <>
@@ -215,10 +211,8 @@ export default function WeatherDashboardContent({ daily, hourly }: { daily: any;
                               )}
                             </div>
 
-                            {/* Ligne séparatrice */}
                             <div className="w-full h-px bg-slate-700/50 my-1" />
 
-                            {/* Vent (Vitesse + Direction avec Flèche) */}
                             <div className="flex flex-col items-center justify-center">
                               <span className="text-[10px] text-violet-400 font-mono">{Math.round(hourly.wind_speed_10m[hIndex])} <span className="text-[8px]">km/h</span></span>
                               <div className="flex items-center gap-0.5 text-[9px] text-slate-500 mt-0.5">
@@ -227,7 +221,6 @@ export default function WeatherDashboardContent({ daily, hourly }: { daily: any;
                               </div>
                             </div>
 
-                            {/* Ligne séparatrice + UV (S'affiche uniquement s'il y a du soleil/UV > 0) */}
                             {hUV > 0 && (
                               <>
                                 <div className="w-full h-px bg-slate-700/50 my-1" />
