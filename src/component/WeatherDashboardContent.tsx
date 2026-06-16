@@ -6,7 +6,7 @@ import WeatherChart from "./WeatherChart";
 import { getWeatherIcon } from "@/lib/weather";
 import { Calendar, Droplets, Wind, Sun, Navigation, ChevronDown, ChevronUp } from "lucide-react";
 
-// === NOUVEAU : ALGORITHME D'IMPACT (Inchangé, mais textColor ajouté) ===
+// === CORRECTION : let au lieu de const pour windDegree ===
 const getDynamicHourlyData = (daily: any, hourly: any, index: number, textColor: string) => {
   const windDirections = ['N', 'NE', 'E', 'SE', 'S', 'SO', 'O', 'NO'];
   const dailyTime = daily.time[index];
@@ -46,7 +46,8 @@ const getDynamicHourlyData = (daily: any, hourly: any, index: number, textColor:
     }
   }
 
-  const windDegree = daily.wind_direction_10m_dominant[index];
+  // CORRECTION : let permet la réassignation
+  let windDegree = daily.wind_direction_10m_dominant[index];
   const windDirIndex = Math.round(((windDegree %= 360) < 0 ? windDegree + 360 : windDegree) / 45) % 8;
 
   return {
