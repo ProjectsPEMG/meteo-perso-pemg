@@ -63,6 +63,7 @@ export default function WeatherChart({ data, daysCount }: { data: any[], daysCou
         {isMounted && (
           <ResponsiveContainer width="100%" height="100%" minWidth={1} minHeight={1}>
             <ComposedChart data={data} margin={{ top: 20, right: 10, left: -25, bottom: 0 }}>
+              // Dans src/components/WeatherChart.tsx
               <XAxis 
                 dataKey="uniqueTime" 
                 stroke="#64748B" 
@@ -74,7 +75,7 @@ export default function WeatherChart({ data, daysCount }: { data: any[], daysCou
                   const date = new Date(val);
                   return isLongPeriod 
                     ? date.toLocaleDateString('fr-FR', { day: '2-digit', month: '2-digit' })
-                    : date.toLocaleTimeString('fr-FR', { hour: '2-digit' }) + 'h';
+                    : date.getHours() + 'h'; // Extraction directe pour éviter le double "hh"
                 }}
               />
               <YAxis stroke="#64748B" fontSize={10} tickLine={false} axisLine={false} />
