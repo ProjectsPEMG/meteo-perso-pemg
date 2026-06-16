@@ -1,54 +1,42 @@
-// src/components/FavoriteButton.tsx
+// src/component/FavoriteButton.tsx
 "use client";
 
 import { useState, useEffect } from "react";
 import { Star } from "lucide-react";
 
-interface City {
-  name: string;
-  lat: number;
-  lon: number;
-}
-
 export default function FavoriteButton({ cityName, lat, lon }: { cityName: string; lat: number; lon: number }) {
-  const [isFavorite, setIsFavorite] = useState(false);
+  const [isFav, setIsFav] = useState(false);
 
-  // Charger les favoris au démarrage
   useEffect(() => {
     const saved = localStorage.getItem("weather_favorites");
     if (saved) {
-      const favorites: City[] = JSON.parse(saved);
-      // ⚠️ PROTECTION AJOUTÉE ICI (f?.name)
-      const exists = favorites.some(f => f?.name?.toLowerCase() === cityName?.toLowerCase());
-      setIsFavorite(exists);
+      const parsed = JSON.parse(saved);
+      setIsFav(parsed.some((f: any) => f.name === cityName));
     }
   }, [cityName]);
 
   const toggleFavorite = () => {
     const saved = localStorage.getItem("weather_favorites");
-    let favorites: City[] = saved ? JSON.parse(saved) : [];
-
-    if (isFavorite) {
-      // ⚠️ PROTECTION AJOUTÉE ICI AUSSI (f?.name)
-      favorites = favorites.filter(f => f?.name?.toLowerCase() !== cityName?.toLowerCase());
-    } else {
-      // Ajouter aux favoris
-      favorites.push({ name: cityName, lat, lon });
-    }
-
-    localStorage.setItem("weather_favorites", JSON.stringify(favorites));
-    setIsFavorite(!isFavorite);
+    let parsed = saved ? JSON.parse(saved) : [];
     
-    // Déclenche un événement pour avertir le Header qu'il faut se mettre à jour
+    if (isFav) {
+      parsed = parsed.filter((f: any) => f.name !== cityName);
+    } else {
+      parsed.push({ name: cityName, lat, lon });
+    }
+    
+    localStorage.setItem("weather_favorites", JSON.stringify(parsed));
+    setIsFav(!isFav);
     window.dispatchEvent(new Event("favorites_updated"));
   };
 
   return (
-    <button onClick={toggleFavorite} className="focus:outline-none transition-transform active:scale-95">
-      <Star 
-        size={24} 
-        className={`transition-colors ${isFavorite ? "text-[#FBBF24] fill-[#FBBF24]" : "text-slate-400 hover:text-[#FBBF24]"}`} 
-      />
+    <button 
+      onClick={toggleFavorite}
+      className="p-1.5 rounded-full hover:bg-slate-500/20 transition-colors"
+      title={isFav ? "Retirer des favoris" : "Ajouter aux favoris"}
+    >
+      <Star size={24} className={isFav ? "text-[#FBBF24] fill-[#FBBF24] drop-shadow-sm" : "text-slate-400/80"} />
     </button>
   );
 }
