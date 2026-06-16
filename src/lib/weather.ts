@@ -60,16 +60,29 @@ export async function getWeatherData(lat: number, lon: number) {
   }
 }
 
-export function getWeatherIcon(code: number, isDay: number = 1) {
-  if (code === 0) return isDay ? "☀️" : "🌙";
-  if (code === 1 || code === 2) return isDay ? "🌤️" : "☁️";
-  if (code === 3) return "☁️";
-  if (code >= 45 && code <= 48) return "🌫️";
-  if (code >= 51 && code <= 67) return "🌧️";
-  if (code >= 71 && code <= 77) return "❄️";
-  if (code >= 95) return "⛈️";
-  return "❓";
-}
+export const getWeatherIcon = (code: number, isDay: number = 1) => {
+  // Sécurité au cas où la donnée serait manquante
+  if (code === undefined || code === null) return "☁️";
+
+  switch (code) {
+    case 0: return isDay ? "☀️" : "🌙";
+    case 1: 
+    case 2: return isDay ? "🌤️" : "☁️";
+    case 3: return "☁️";
+    case 45: 
+    case 48: return "🌫️"; // Brouillard et brume
+    case 51: case 53: case 55: 
+    case 56: case 57: return "🌧️"; // Bruine (légère, dense, verglaçante)
+    case 61: case 63: case 65: 
+    case 66: case 67: return "🌧️"; // Pluie (légère, forte, verglaçante)
+    case 71: case 73: case 75: 
+    case 77: return "❄️"; // Neige (chute et grains)
+    case 80: case 81: case 82: return "🌦️"; // Averses de pluie
+    case 85: case 86: return "🌨️"; // Averses de neige
+    case 95: case 96: case 99: return "⛈️"; // Orages (légers, forts, avec grêle)
+    default: return "☁️"; // Solution de secours propre pour éviter les erreurs d'affichage
+  }
+};
 
 export function getTempGradient(temp: number) {
   if (temp <= 0) return "from-blue-600 to-cyan-400";
