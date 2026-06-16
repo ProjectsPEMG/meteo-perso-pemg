@@ -18,7 +18,8 @@ export default function FavoriteButton({ cityName, lat, lon }: { cityName: strin
     const saved = localStorage.getItem("weather_favorites");
     if (saved) {
       const favorites: City[] = JSON.parse(saved);
-      const exists = favorites.some(f => f.name.toLowerCase() === cityName.toLowerCase());
+      // ⚠️ PROTECTION AJOUTÉE ICI (f?.name)
+      const exists = favorites.some(f => f?.name?.toLowerCase() === cityName?.toLowerCase());
       setIsFavorite(exists);
     }
   }, [cityName]);
@@ -28,8 +29,8 @@ export default function FavoriteButton({ cityName, lat, lon }: { cityName: strin
     let favorites: City[] = saved ? JSON.parse(saved) : [];
 
     if (isFavorite) {
-      // Retirer des favoris
-      favorites = favorites.filter(f => f.name.toLowerCase() !== cityName.toLowerCase());
+      // ⚠️ PROTECTION AJOUTÉE ICI AUSSI (f?.name)
+      favorites = favorites.filter(f => f?.name?.toLowerCase() !== cityName?.toLowerCase());
     } else {
       // Ajouter aux favoris
       favorites.push({ name: cityName, lat, lon });
