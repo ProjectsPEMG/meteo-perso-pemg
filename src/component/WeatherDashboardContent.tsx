@@ -120,6 +120,7 @@ export default function WeatherDashboardContent({ daily, hourly }: { daily: any;
 
                   {/* COLONNE 2 : TEMPÉRATURES (Largeur fixe de 120px) */}
                   <div className="flex items-center gap-2 md:w-[120px] shrink-0">
+                    {/* MAX COLORÉ */}
                     <span 
                       className="font-bold text-2xl drop-shadow-sm" 
                       style={{ color: getTempColor(dayMax) }}
@@ -127,7 +128,13 @@ export default function WeatherDashboardContent({ daily, hourly }: { daily: any;
                       {Math.round(dayMax)}°
                     </span>
                     <span className="text-slate-500 text-lg">/</span>
-                    <span className="font-semibold text-slate-400 text-lg">{Math.round(dayMin)}°</span>
+                    {/* MIN COLORÉ */}
+                    <span 
+                      className="font-semibold text-lg drop-shadow-sm"
+                      style={{ color: getTempColor(dayMin) }}
+                    >
+                      {Math.round(dayMin)}°
+                    </span>
                   </div>
 
                   {/* COLONNES 3, 4, 5 : STATISTIQUES */}
@@ -139,7 +146,6 @@ export default function WeatherDashboardContent({ daily, hourly }: { daily: any;
                         <Droplets size={14} className="shrink-0" /> 
                         <span className="truncate">{daily.precipitation_sum[index]} mm</span>
                       </div>
-                      {/* Conteneur de hauteur fixe (16px) pour éviter que l'absence de % ne décale les lignes */}
                       <div className="h-[16px] flex items-center mt-0.5">
                         {daily.precipitation_probability_max[index] > 0 && (
                           <span className="text-slate-500 text-[10px] ml-5 truncate">{daily.precipitation_probability_max[index]}% de risque</span>
