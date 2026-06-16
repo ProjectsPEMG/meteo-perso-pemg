@@ -96,8 +96,7 @@ export default function WeatherDashboardContent({ daily, hourly }: { daily: any;
             const dayMax = daily.temperature_2m_max[index];
             const windDir = getWindDirection(daily.wind_direction_10m_dominant[index]);
 
-            // === ALGORITHME DE REPRÉSENTATION DU JOUR ===
-            // On calcule l'icône la plus fréquente pendant les heures de jour (is_day === 1)
+            // === ALGORITHME D'IMPACT DE LA MÉTÉO (V3 : La pluie gagne sur le soleil) ===
             const datePrefix = time.split('T')[0];
             const daytimeCodes: number[] = [];
             
@@ -107,20 +106,58 @@ export default function WeatherDashboardContent({ daily, hourly }: { daily: any;
               }
             });
 
-            // Par défaut, on prend le code de l'API. Si on a trouvé des heures de jour, on calcule le code dominant.
             let representativeCode = daily.weather_code[index];
+            
             if (daytimeCodes.length > 0) {
               const counts: Record<number, number> = {};
               let maxCount = 0;
+              let mostFrequentCode = daytimeCodes[0];
+              
+              let badWeatherCount = 0;
+              let worstCode = daytimeCodes[0];
+              let worstSeverity = -1;
+
+              // On définit une gravité pour écraser le soleil en cas de problème
+              const getSeverity = (c: number) => {
+                if ([95, 96, 99].includes(c)) return 4; // Orage (Gravité max)
+                if ([71, 73, 75, 77, 85, 86].includes(c)) return 3; // Neige
+                if ([51, 53, 55, 56, 57, 61, 63, 65, 66, 67, 80, 81, 82].includes(c)) return 2; // Pluie
+                return 0; // Beau temps
+              };
+
               for (const code of daytimeCodes) {
+                // Comptage classique
                 counts[code] = (counts[code] || 0) + 1;
                 if (counts[code] > maxCount) {
                   maxCount = counts[code];
-                  representativeCode = code;
+                  mostFrequentCode = code;
+                }
+                
+                // Analyse de gravité
+                const severity = getSeverity(code);
+                if (severity > 0) {
+                  badWeatherCount++;
+                  // On mémorise la pire météo de la journée
+                  if (severity > worstSeverity) {
+                    worstSeverity = severity;
+                    worstCode = code;
+                  }
                 }
               }
+
+              // RÈGLES DE DÉCISION :
+              if (worstSeverity === 4 || badWeatherCount >= 2) {
+                // S'il y a de l'orage ou au moins 2h de pluie/neige, ça devient l'icône du jour !
+                representativeCode = worstCode;
+              } else if (badWeatherCount === 1 && mostFrequentCode <= 1) {
+                // 1h de pluie perdue dans un grand ciel bleu -> Icône "Averses" (80)
+                representativeCode = 80;
+              } else {
+                // Sinon, la météo dominante gagne
+                representativeCode = mostFrequentCode;
+              }
             }
-            // ===========================================
+            // =======================================================================
 
             return (
               <div 
@@ -131,7 +168,7 @@ export default function WeatherDashboardContent({ daily, hourly }: { daily: any;
                   
                   <div className="flex items-center gap-4 md:w-[220px] shrink-0">
                     <div className="w-12 h-12 flex items-center justify-center bg-[#1B263B] rounded-xl border border-slate-700 shadow-inner text-2xl shrink-0">
-                      {/* On utilise notre code météo calculé (representativeCode) au lieu de celui de l'API */}
+                      {/* L'icône tient maintenant compte de l'impact de la pluie ! */}
                       {getWeatherIcon(representativeCode, 1)}
                     </div>
                     <div className="min-w-0">
