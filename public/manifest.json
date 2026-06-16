@@ -1,0 +1,17 @@
+{
+  "name": "Météo Perso",
+  "short_name": "Météo",
+  "description": "L'application météo précise et selon vos besoins",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#0D1B2A",
+  "theme_color": "#0D1B2A",
+  "icons": [
+    {
+      "src": "/icon.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any maskable"
+    }
+  ]
+}
