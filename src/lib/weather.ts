@@ -1,21 +1,22 @@
 // src/lib/weather.ts
 
 export async function getWeatherData(lat: number, lon: number) {
-  // 1. On remplace "timezone=auto" par "timezone=Europe%2FParis" pour éviter le crash serveur
-  const weatherUrl = `https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${lon}&current=temperature_2m,relative_humidity_2m,apparent_temperature,is_day,precipitation,weather_code,wind_speed_10m&hourly=temperature_2m,relative_humidity_2m,precipitation_probability,precipitation,uv_index,weather_code,is_day,wind_speed_10m,wind_gusts_10m&daily=weather_code,temperature_2m_max,temperature_2m_min,sunrise,sunset,uv_index_max,precipitation_sum,precipitation_probability_max,wind_speed_10m_max,wind_direction_10m_dominant&timezone=Europe%2FParis&forecast_days=15`;
-  const airQualityUrl = `https://air-quality-api.open-meteo.com/v1/air-quality?latitude=${lat}&longitude=${lon}&hourly=pm2_5,pm10,grass_pollen&timezone=Europe%2FParis&forecast_days=15`;
+  // 1. On ajoute un faux paramètre "&bypass=1" à la fin de l'URL. 
+  const weatherUrl = `https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${lon}&current=temperature_2m,relative_humidity_2m,apparent_temperature,is_day,precipitation,weather_code,wind_speed_10m&hourly=temperature_2m,relative_humidity_2m,precipitation_probability,precipitation,uv_index,weather_code,is_day,wind_speed_10m,wind_gusts_10m&daily=weather_code,temperature_2m_max,temperature_2m_min,sunrise,sunset,uv_index_max,precipitation_sum,precipitation_probability_max,wind_speed_10m_max,wind_direction_10m_dominant&timezone=Europe%2FParis&forecast_days=15&bypass=1`;
+  
+  const airQualityUrl = `https://air-quality-api.open-meteo.com/v1/air-quality?latitude=${lat}&longitude=${lon}&hourly=pm2_5,pm10,grass_pollen&timezone=Europe%2FParis&forecast_days=15&bypass=1`;
 
   try {
-    // 2. On ajoute un Header "User-Agent" pour ne pas être bloqué par le filtre anti-bot de l'API
-    const weatherRes = await fetch(weatherUrl, { 
-      next: { revalidate: 3600 },
-      headers: {
-        'User-Agent': 'MeteoPersoApp/1.0',
-        'Accept': 'application/json'
-      }
-    });
+    // 2. On utilise { cache: 'no-store' } pour interdire formellement à Vercel de tricher avec sa mémoire
+    const weatherRes = await fetch(weatherUrl, { cache: 'no-store' });
     
-    if (!weatherRes.ok) throw new Error("Erreur météo serveur");
+    if (!weatherRes.ok) {
+      // 3. Si ça plante vraiment, on force Vercel à écrire la VRAIE raison dans ses journaux (Logs)
+      const errorText = await weatherRes.text();
+      console.error(`Erreur ${weatherRes.status} Open-Meteo :`, errorText);
+      throw new Error("Erreur météo serveur");
+    }
+    
     const weatherData = await weatherRes.json();
 
     let pm2_5 = new Array(360).fill(null);
@@ -23,10 +24,7 @@ export async function getWeatherData(lat: number, lon: number) {
     let pollen = new Array(360).fill(null);
 
     try {
-      const aqRes = await fetch(airQualityUrl, { 
-        next: { revalidate: 3600 },
-        headers: { 'User-Agent': 'MeteoPersoApp/1.0' }
-      });
+      const aqRes = await fetch(airQualityUrl, { cache: 'no-store' });
       if (aqRes.ok) {
         const aqData = await aqRes.json();
         pm2_5 = aqData.hourly?.pm2_5 || pm2_5;
@@ -47,7 +45,7 @@ export async function getWeatherData(lat: number, lon: number) {
       }
     };
   } catch (error) {
-    console.error("L'API météo a rejeté la requête Vercel:", error);
+    console.error("Crash total du Fetch :", error);
     throw error; 
   }
 }
