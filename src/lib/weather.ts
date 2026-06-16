@@ -1,13 +1,13 @@
 // src/lib/weather.ts
 
 export async function getWeatherData(lat: number, lon: number) {
-
-  const weatherUrl = `https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${lon}&current=temperature_2m,relative_humidity_2m,apparent_temperature,is_day,precipitation,weather_code,wind_speed_10m&hourly=temperature_2m,relative_humidity_2m,precipitation_probability,precipitation,uv_index,weather_code,is_day,wind_speed_10m,wind_gusts_10m&daily=weather_code,temperature_2m_max,temperature_2m_min,sunrise,sunset,uv_index_max,precipitation_sum,precipitation_probability_max,wind_speed_10m_max,wind_direction_10m_dominant&timezone=Europe%2FParis&forecast_days=15&bypass=3`;
-  const airQualityUrl = `https://air-quality-api.open-meteo.com/v1/air-quality?latitude=${lat}&longitude=${lon}&hourly=pm2_5,pm10,grass_pollen&timezone=Europe%2FParis&forecast_days=7&bypass=4`;
+  // 1. L'URL météo
   const weatherUrl = `https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${lon}&current=temperature_2m,relative_humidity_2m,apparent_temperature,is_day,precipitation,weather_code,wind_speed_10m&hourly=temperature_2m,relative_humidity_2m,precipitation_probability,precipitation,uv_index,weather_code,is_day,wind_speed_10m,wind_gusts_10m,wind_direction_10m&daily=weather_code,temperature_2m_max,temperature_2m_min,sunrise,sunset,uv_index_max,precipitation_sum,precipitation_probability_max,wind_speed_10m_max,wind_direction_10m_dominant&timezone=Europe%2FParis&forecast_days=15&bypass=5`;
   
+  // 2. L'URL Qualité de l'air (limitée à 7 jours)
+  const airQualityUrl = `https://air-quality-api.open-meteo.com/v1/air-quality?latitude=${lat}&longitude=${lon}&hourly=pm2_5,pm10,grass_pollen&timezone=Europe%2FParis&forecast_days=7&bypass=4`;
+
   try {
-    // LE DÉGUISEMENT EST ICI : On fait croire à l'API qu'on est un utilisateur sur Google Chrome
     const weatherRes = await fetch(weatherUrl, { 
       cache: 'no-store',
       headers: {
@@ -17,7 +17,6 @@ export async function getWeatherData(lat: number, lon: number) {
     });
     
     if (!weatherRes.ok) {
-      // Si ça bloque encore, on écrit l'erreur exacte en rouge fluo dans les Runtime Logs
       const errorText = await weatherRes.text();
       console.error(`❌ ERREUR API METEO (${weatherRes.status}) :`, errorText);
       throw new Error("Erreur météo serveur");
