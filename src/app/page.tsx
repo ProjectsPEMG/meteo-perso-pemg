@@ -5,7 +5,7 @@ import SearchBar from "@/component/SearchBar";
 import WeatherDashboardContent from "@/component/WeatherDashboardContent";
 import FavoriteButton from "@/component/FavoriteButton";
 import FavoritesDropdown from "@/component/FavoritesDropdown";
-import { Wind, Droplets, Sun, Map } from "lucide-react";
+import { Wind, Droplets, Sun, Map, Sunrise } from "lucide-react";
 
 export default async function Dashboard({
   searchParams,
@@ -19,6 +19,14 @@ export default async function Dashboard({
 
   const weather = await getWeatherData(lat, lon);
   const current = weather.current;
+
+  // Formatage des heures de lever et de coucher du soleil (ex: "2024-06-16T05:48" devient "05h48")
+  const formatTime = (isoString: string) => {
+    if (!isoString) return "--h--";
+    return isoString.split("T")[1].replace(":", "h");
+  };
+  const sunriseTime = formatTime(weather.daily.sunrise[0]);
+  const sunsetTime = formatTime(weather.daily.sunset[0]);
 
   return (
     <div className="min-h-screen bg-[#0D1B2A] text-slate-100 font-sans selection:bg-[#38BDF8]">
@@ -81,26 +89,34 @@ export default async function Dashboard({
             <span className="text-2xl mb-2">{getWeatherIcon(current.weather_code, current.is_day)}</span>
           </div>
 
+          {/* GRILLE D'INFORMATIONS DE LA MÉTÉO ACTUELLE (Désormais parfaitement symétrique avec 4 blocs) */}
           <div className="grid grid-cols-2 gap-4">
             <div className="flex items-center gap-2 bg-[#0D1B2A] p-3 rounded-xl border border-slate-700/50">
-              <Wind className="text-violet-400" size={20}/>
-              <div>
-                <p className="text-xs text-slate-400">Vent</p>
-                <p className="font-semibold">{current.wind_speed_10m} km/h</p>
+              <Wind className="text-violet-400 shrink-0" size={20}/>
+              <div className="min-w-0">
+                <p className="text-xs text-slate-400 truncate">Vent</p>
+                <p className="font-semibold truncate">{current.wind_speed_10m} km/h</p>
               </div>
             </div>
             <div className="flex items-center gap-2 bg-[#0D1B2A] p-3 rounded-xl border border-slate-700/50">
-              <Droplets className="text-[#38BDF8]" size={20}/>
-              <div>
-                <p className="text-xs text-slate-400">Humidité</p>
-                <p className="font-semibold">{current.relative_humidity_2m}%</p>
+              <Droplets className="text-[#38BDF8] shrink-0" size={20}/>
+              <div className="min-w-0">
+                <p className="text-xs text-slate-400 truncate">Humidité</p>
+                <p className="font-semibold truncate">{current.relative_humidity_2m}%</p>
               </div>
             </div>
             <div className="flex items-center gap-2 bg-[#0D1B2A] p-3 rounded-xl border border-slate-700/50">
-              <Sun className="text-[#FBBF24]" size={20}/>
-              <div>
-                <p className="text-xs text-slate-400">UV Max</p>
-                <p className="font-semibold">{weather.daily.uv_index_max[0]}</p>
+              <Sun className="text-[#FBBF24] shrink-0" size={20}/>
+              <div className="min-w-0">
+                <p className="text-xs text-slate-400 truncate">UV Max</p>
+                <p className="font-semibold truncate">{weather.daily.uv_index_max[0]}</p>
+              </div>
+            </div>
+            <div className="flex items-center gap-2 bg-[#0D1B2A] p-3 rounded-xl border border-slate-700/50">
+              <Sunrise className="text-orange-400 shrink-0" size={20}/>
+              <div className="min-w-0">
+                <p className="text-xs text-slate-400 truncate">Levé & Couché</p>
+                <p className="font-semibold text-[11px] sm:text-xs truncate">{sunriseTime} - {sunsetTime}</p>
               </div>
             </div>
           </div>
