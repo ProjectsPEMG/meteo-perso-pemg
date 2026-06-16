@@ -11,7 +11,8 @@ interface City {
   lon: number;
 }
 
-export default function FavoritesDropdown() {
+// L'autorisation TypeScript est ici aussi !
+export default function FavoritesDropdown({ isDay = false }: { isDay?: boolean }) {
   const [isOpen, setIsOpen] = useState(false);
   const [favorites, setFavorites] = useState<City[]>([]);
   const router = useRouter();
@@ -48,7 +49,7 @@ export default function FavoritesDropdown() {
     <div className="relative">
       <button 
         onClick={() => setIsOpen(!isOpen)}
-        className={`p-2 rounded-full transition relative ${isOpen ? 'bg-slate-700' : 'bg-[#1B263B] hover:bg-slate-700'}`}
+        className={`p-2 rounded-full transition relative shadow-sm ${isOpen ? (isDay ? 'bg-slate-300' : 'bg-slate-700') : (isDay ? 'bg-slate-200/60 hover:bg-slate-300' : 'bg-[#1B263B] hover:bg-slate-700')}`}
       >
         <Star size={20} className="text-[#FBBF24] fill-[#FBBF24]" />
         {favorites.length > 0 && (
@@ -60,28 +61,26 @@ export default function FavoritesDropdown() {
 
       {isOpen && (
         <>
-          {/* Fond invisible pour fermer le menu en cliquant à côté sur mobile */}
           <div className="fixed inset-0 z-40 sm:hidden" onClick={() => setIsOpen(false)}></div>
           
-          {/* Menu Dropdown avec correction de débordement */}
-          <div className="absolute right-[-48px] sm:right-0 top-12 w-[85vw] sm:w-72 max-w-[320px] bg-[#1B263B] border border-slate-700 rounded-xl shadow-2xl overflow-hidden z-50">
-            <div className="px-4 py-2 border-b border-slate-700/50 bg-[#0D1B2A]/50">
-              <p className="text-xs font-bold text-slate-400 uppercase tracking-wider">Villes Favorites</p>
+          <div className={`absolute right-[-48px] sm:right-0 top-12 w-[85vw] sm:w-72 max-w-[320px] border rounded-xl shadow-2xl overflow-hidden z-50 transition-colors duration-500 ${isDay ? 'bg-white border-slate-200' : 'bg-[#1B263B] border-slate-700'}`}>
+            <div className={`px-4 py-2 border-b ${isDay ? 'bg-slate-50 border-slate-200' : 'bg-[#0D1B2A]/50 border-slate-700/50'}`}>
+              <p className={`text-xs font-bold uppercase tracking-wider ${isDay ? 'text-slate-500' : 'text-slate-400'}`}>Villes Favorites</p>
             </div>
             
             {favorites.length === 0 ? (
-              <p className="text-xs text-slate-400 p-4 text-center">Aucune ville en favori</p>
+              <p className={`text-xs p-4 text-center ${isDay ? 'text-slate-500' : 'text-slate-400'}`}>Aucune ville en favori</p>
             ) : (
-              <ul className="divide-y divide-slate-700/50 max-h-60 overflow-y-auto relative z-50">
+              <ul className={`divide-y max-h-60 overflow-y-auto relative z-50 ${isDay ? 'divide-slate-200' : 'divide-slate-700/50'}`}>
                 {favorites.map((city, index) => (
                   <li 
                     key={city?.name || index}
                     onClick={() => handleSelect(city)}
-                    className="flex items-center justify-between px-4 py-3 hover:bg-slate-800 cursor-pointer transition-colors group"
+                    className={`flex items-center justify-between px-4 py-3 cursor-pointer transition-colors group ${isDay ? 'hover:bg-slate-100' : 'hover:bg-slate-800'}`}
                   >
                     <div className="flex items-center gap-2 min-w-0">
                       <MapPin size={14} className="text-[#38BDF8] shrink-0" />
-                      <span className="text-sm font-medium text-slate-200 truncate">{city?.name}</span>
+                      <span className={`text-sm font-medium truncate ${isDay ? 'text-slate-800' : 'text-slate-200'}`}>{city?.name}</span>
                     </div>
                     <button 
                       onClick={(e) => deleteFavorite(e, city.name)}
