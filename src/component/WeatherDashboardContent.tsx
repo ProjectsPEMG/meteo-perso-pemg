@@ -1,4 +1,4 @@
-// src/components/WeatherDashboardContent.tsx
+// src/component/WeatherDashboardContent.tsx
 "use client";
 
 import { useState } from "react";
@@ -13,7 +13,7 @@ const getWindDirection = (degree: number) => {
   return { label: directions[index], rotate: degree };
 };
 
-// Générateur de couleur exact basé sur le gradient (Bleu -> Cyan -> Jaune -> Orange -> Rouge -> Violet)
+// Générateur de couleur exact basé sur le gradient
 const getTempColor = (temp: number) => {
   const stops = [
     { t: -10, c: [59, 130, 246] },   // Blue
@@ -105,7 +105,7 @@ export default function WeatherDashboardContent({ daily, hourly }: { daily: any;
               >
                 <div className="flex flex-col md:flex-row md:items-center w-full gap-4 md:gap-0">
                   
-                  {/* COLONNE 1 : DATE & ICÔNE (Largeur fixe de 220px) */}
+                  {/* COLONNE 1 : DATE & ICÔNE */}
                   <div className="flex items-center gap-4 md:w-[220px] shrink-0">
                     <div className="w-12 h-12 flex items-center justify-center bg-[#1B263B] rounded-xl border border-slate-700 shadow-inner text-2xl shrink-0">
                       {getWeatherIcon(daily.weather_code[index])}
@@ -118,29 +118,19 @@ export default function WeatherDashboardContent({ daily, hourly }: { daily: any;
                     </div>
                   </div>
 
-                  {/* COLONNE 2 : TEMPÉRATURES (Largeur fixe de 120px) */}
+                  {/* COLONNE 2 : TEMPÉRATURES */}
                   <div className="flex items-center gap-2 md:w-[120px] shrink-0">
-                    {/* MAX COLORÉ */}
-                    <span 
-                      className="font-bold text-2xl drop-shadow-sm" 
-                      style={{ color: getTempColor(dayMax) }}
-                    >
+                    <span className="font-bold text-2xl drop-shadow-sm" style={{ color: getTempColor(dayMax) }}>
                       {Math.round(dayMax)}°
                     </span>
                     <span className="text-slate-500 text-lg">/</span>
-                    {/* MIN COLORÉ */}
-                    <span 
-                      className="font-semibold text-lg drop-shadow-sm"
-                      style={{ color: getTempColor(dayMin) }}
-                    >
+                    <span className="font-semibold text-lg drop-shadow-sm" style={{ color: getTempColor(dayMin) }}>
                       {Math.round(dayMin)}°
                     </span>
                   </div>
 
                   {/* COLONNES 3, 4, 5 : STATISTIQUES */}
                   <div className="grid grid-cols-3 gap-2 md:flex md:items-start md:gap-0 shrink-0 text-xs font-medium text-slate-300">
-                    
-                    {/* COLONNE 3 : PLUIE (Largeur fixe de 100px) */}
                     <div className="flex flex-col md:w-[100px]">
                       <div className="flex items-center gap-1.5 text-[#38BDF8]">
                         <Droplets size={14} className="shrink-0" /> 
@@ -153,7 +143,6 @@ export default function WeatherDashboardContent({ daily, hourly }: { daily: any;
                       </div>
                     </div>
                     
-                    {/* COLONNE 4 : VENT (Largeur fixe de 100px) */}
                     <div className="flex flex-col md:w-[100px]">
                       <div className="flex items-center gap-1.5">
                         <Wind size={14} className="text-violet-400 shrink-0" />
@@ -165,7 +154,6 @@ export default function WeatherDashboardContent({ daily, hourly }: { daily: any;
                       </div>
                     </div>
                     
-                    {/* COLONNE 5 : UV (Largeur fixe de 80px) */}
                     <div className="flex flex-col md:w-[80px]">
                       <div className="flex items-center gap-1.5">
                         <Sun size={14} className="text-[#FBBF24] shrink-0" />
@@ -174,7 +162,7 @@ export default function WeatherDashboardContent({ daily, hourly }: { daily: any;
                     </div>
                   </div>
 
-                  {/* COLONNE 6 : BOUTON (Prend tout l'espace restant pour s'aligner à droite) */}
+                  {/* COLONNE 6 : BOUTON */}
                   <div className="mt-2 md:mt-0 md:flex-grow flex md:justify-end shrink-0">
                     <button 
                       onClick={() => setExpandedDay(isExpanded ? null : time)}
@@ -184,10 +172,9 @@ export default function WeatherDashboardContent({ daily, hourly }: { daily: any;
                       {isExpanded ? <ChevronUp size={14} /> : <ChevronDown size={14} />}
                     </button>
                   </div>
-
                 </div>
 
-                {/* ACCORDÉON : DÉTAIL HEURE PAR HEURE */}
+                {/* ACCORDÉON : DÉTAIL HEURE PAR HEURE (MAJ AVEC VENT ET UV) */}
                 {isExpanded && (
                   <div className="mt-4 pt-4 border-t border-slate-700/50 animate-in slide-in-from-top-2 duration-300">
                     <p className="text-xs font-bold text-slate-400 mb-3 ml-1 uppercase tracking-wider">Évolution de la journée</p>
@@ -196,27 +183,61 @@ export default function WeatherDashboardContent({ daily, hourly }: { daily: any;
                         if (!hTime.startsWith(time.split('T')[0])) return null;
                         
                         const hDate = new Date(hTime);
+                        
+                        // Sécurité pour la direction du vent (au cas où elle n'est pas encore chargée)
+                        const hWindDir = hourly.wind_direction_10m ? getWindDirection(hourly.wind_direction_10m[hIndex]) : { label: '-', rotate: 0 };
+                        const hUV = hourly.uv_index ? Math.round(hourly.uv_index[hIndex]) : 0;
+
                         return (
-                          <div key={hTime} className="flex flex-col items-center justify-between gap-2 min-w-[56px] p-2 rounded-xl bg-slate-800/30 hover:bg-slate-700/50 transition-colors border border-slate-700/30">
+                          <div key={hTime} className="flex flex-col items-center justify-start gap-1 min-w-[72px] p-2 rounded-xl bg-[#0D1B2A]/50 hover:bg-[#0D1B2A] transition-colors border border-slate-700/50">
+                            
+                            {/* Heure, Icône, Température */}
                             <span className="text-[11px] font-medium text-slate-400">{hDate.getHours()}h</span>
                             <span className="text-2xl my-1">{getWeatherIcon(hourly.weather_code[hIndex])}</span>
-                            
-                            {/* Température horaire colorée avec le gradient */}
-                            <span 
-                              className="text-sm font-bold"
-                              style={{ color: getTempColor(hourly.temperature_2m[hIndex]) }}
-                            >
+                            <span className="text-sm font-bold" style={{ color: getTempColor(hourly.temperature_2m[hIndex]) }}>
                               {Math.round(hourly.temperature_2m[hIndex])}°
                             </span>
                             
-                            <div className="min-h-[24px] flex flex-col items-center justify-center">
-                              {hourly.precipitation[hIndex] > 0 && (
-                                <span className="text-[11px] text-[#38BDF8] font-bold leading-tight">{hourly.precipitation[hIndex]} mm</span>
-                              )}
-                              {hourly.precipitation_probability[hIndex] > 0 && (
-                                <span className="text-[9px] text-slate-400 leading-tight">{hourly.precipitation_probability[hIndex]}%</span>
+                            {/* Ligne séparatrice */}
+                            <div className="w-full h-px bg-slate-700/50 my-1" />
+                            
+                            {/* Pluie */}
+                            <div className="flex flex-col items-center justify-center min-h-[24px]">
+                              {hourly.precipitation[hIndex] > 0 ? (
+                                <>
+                                  <span className="text-[10px] text-[#38BDF8] font-bold leading-tight">{hourly.precipitation[hIndex]} mm</span>
+                                  {hourly.precipitation_probability[hIndex] > 0 && (
+                                    <span className="text-[9px] text-slate-400 leading-tight">{hourly.precipitation_probability[hIndex]}%</span>
+                                  )}
+                                </>
+                              ) : (
+                                <Droplets size={10} className="text-slate-600 opacity-50" />
                               )}
                             </div>
+
+                            {/* Ligne séparatrice */}
+                            <div className="w-full h-px bg-slate-700/50 my-1" />
+
+                            {/* Vent (Vitesse + Direction avec Flèche) */}
+                            <div className="flex flex-col items-center justify-center">
+                              <span className="text-[10px] text-violet-400 font-mono">{Math.round(hourly.wind_speed_10m[hIndex])} <span className="text-[8px]">km/h</span></span>
+                              <div className="flex items-center gap-0.5 text-[9px] text-slate-500 mt-0.5">
+                                <Navigation size={8} style={{ transform: `rotate(${hWindDir.rotate}deg)` }} className="text-slate-400" />
+                                <span>{hWindDir.label}</span>
+                              </div>
+                            </div>
+
+                            {/* Ligne séparatrice + UV (S'affiche uniquement s'il y a du soleil/UV > 0) */}
+                            {hUV > 0 && (
+                              <>
+                                <div className="w-full h-px bg-slate-700/50 my-1" />
+                                <div className="flex items-center gap-1 text-[9px] text-[#FBBF24] font-medium">
+                                  <Sun size={8} />
+                                  <span>UV {hUV}</span>
+                                </div>
+                              </>
+                            )}
+
                           </div>
                         );
                       })}
