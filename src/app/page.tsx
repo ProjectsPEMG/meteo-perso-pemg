@@ -70,7 +70,7 @@ export default async function Dashboard({
       {/* CONTENU PRINCIPAL */}
       <main className="max-w-6xl mx-auto px-4 md:px-8 pb-8 grid grid-cols-1 lg:grid-cols-3 gap-6 items-start">
         
-        {/* HERO SECTION : MÉTÉO ACTUELLE (Collant uniquement sur PC) */}
+        {/* HERO SECTION : MÉTÉO ACTUELLE */}
         <section className="lg:col-span-1 bg-gradient-to-br from-[#1B263B] to-[#0D1B2A] p-6 rounded-3xl border border-slate-700 shadow-xl relative overflow-hidden lg:sticky lg:top-28">
           <div className="absolute -top-10 -right-10 text-9xl opacity-10 pointer-events-none">
             {getWeatherIcon(current.weather_code, current.is_day)}
@@ -89,7 +89,7 @@ export default async function Dashboard({
             <span className="text-2xl mb-2">{getWeatherIcon(current.weather_code, current.is_day)}</span>
           </div>
 
-          {/* GRILLE D'INFORMATIONS DE LA MÉTÉO ACTUELLE (Désormais parfaitement symétrique avec 4 blocs) */}
+          {/* GRILLE D'INFORMATIONS DE LA MÉTÉO ACTUELLE */}
           <div className="grid grid-cols-2 gap-4">
             <div className="flex items-center gap-2 bg-[#0D1B2A] p-3 rounded-xl border border-slate-700/50">
               <Wind className="text-violet-400 shrink-0" size={20}/>
@@ -98,6 +98,7 @@ export default async function Dashboard({
                 <p className="font-semibold truncate">{current.wind_speed_10m} km/h</p>
               </div>
             </div>
+            
             <div className="flex items-center gap-2 bg-[#0D1B2A] p-3 rounded-xl border border-slate-700/50">
               <Droplets className="text-[#38BDF8] shrink-0" size={20}/>
               <div className="min-w-0">
@@ -105,6 +106,7 @@ export default async function Dashboard({
                 <p className="font-semibold truncate">{current.relative_humidity_2m}%</p>
               </div>
             </div>
+            
             <div className="flex items-center gap-2 bg-[#0D1B2A] p-3 rounded-xl border border-slate-700/50">
               <Sun className="text-[#FBBF24] shrink-0" size={20}/>
               <div className="min-w-0">
@@ -112,11 +114,16 @@ export default async function Dashboard({
                 <p className="font-semibold truncate">{weather.daily.uv_index_max[0]}</p>
               </div>
             </div>
+
+            {/* BLOC SOLEIL OPTIMISÉ POUR ÉVITER LES COUPURES */}
             <div className="flex items-center gap-2 bg-[#0D1B2A] p-3 rounded-xl border border-slate-700/50">
               <Sunrise className="text-orange-400 shrink-0" size={20}/>
-              <div className="min-w-0">
-                <p className="text-xs text-slate-400 truncate">Levé & Couché</p>
-                <p className="font-semibold text-[11px] sm:text-xs truncate">{sunriseTime} - {sunsetTime}</p>
+              <div className="flex flex-col justify-center leading-tight min-w-0">
+                <p className="text-xs text-slate-400 truncate">Soleil</p>
+                <div className="text-[11px] font-mono font-semibold text-slate-200 mt-0.5">
+                  <p className="truncate">↑ {sunriseTime}</p>
+                  <p className="truncate">↓ {sunsetTime}</p>
+                </div>
               </div>
             </div>
           </div>
