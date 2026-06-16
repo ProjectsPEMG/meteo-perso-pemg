@@ -44,8 +44,6 @@ const getDynamicHourlyData = (daily: any, hourly: any, index: number, textColor:
       }
     }
   }
-
-  // CORRECTION : let permet la réassignation
   let windDegree = daily.wind_direction_10m_dominant[index];
   const windDirIndex = Math.round(((windDegree %= 360) < 0 ? windDegree + 360 : windDegree) / 45) % 8;
 
