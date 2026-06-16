@@ -4,12 +4,11 @@
 import { useState } from "react";
 import WeatherChart from "./WeatherChart";
 import { getWeatherIcon } from "@/lib/weather";
-import { Calendar, BarChart3, ChevronRight } from "lucide-react";
+import { Calendar, Droplets, Wind, Sun } from "lucide-react";
 
 export default function WeatherDashboardContent({ daily, hourly }: { daily: any; hourly: any }) {
   const [daysCount, setDaysCount] = useState<number>(3);
 
-  // 1. EXTRACTION ET INJECTION CORRIGÉE DES DONNÉES POLLUTION / POLLEN
   const totalHoursToDisplay = daysCount * 24;
   const chartData = hourly.time.slice(0, totalHoursToDisplay).map((time: string, index: number) => {
     return {
@@ -19,7 +18,6 @@ export default function WeatherDashboardContent({ daily, hourly }: { daily: any;
       rainProb: hourly.precipitation_probability[index],
       wind: hourly.wind_speed_10m[index],
       gusts: hourly.wind_gusts_10m[index],
-      // On s'assure d'extraire les données météo ET de pollution pour chaque index horaire
       pm2_5: hourly.pm2_5 ? hourly.pm2_5[index] : 0,
       pollen: hourly.pollen ? hourly.pollen[index] : 0,
       dateFull: new Date(time).toLocaleDateString("fr-FR", { weekday: "long", day: "numeric", month: "long", hour: "2-digit" }),
@@ -48,15 +46,15 @@ export default function WeatherDashboardContent({ daily, hourly }: { daily: any;
         </div>
       </div>
 
-      {/* LISTE DES PRÉVISIONS JOURNALIÈRES (SANS CURSEUR DE DÉFILEMENT) */}
+      {/* LISTE DES PRÉVISIONS JOURNALIÈRES RICHES (SANS SCROLLBAR) */}
       <div className="bg-[#1B263B] p-6 rounded-3xl shadow-xl border border-slate-700">
         <h3 className="text-sm font-bold uppercase text-slate-400 tracking-wider mb-4 flex items-center gap-2">
           <Calendar size={16} className="text-[#38BDF8]" />
           Prévisions détaillées
         </h3>
         
-        {/* MODIFICATION ICI : Suppression de max-h et de overflow-y-auto pour tout afficher d'un coup */}
-        <div className="flex flex-col gap-2">
+        {/* Affichage étiré avec toutes les infos */}
+        <div className="flex flex-col gap-3">
           {dailyRows.map((time: string, index: number) => {
             const date = new Date(time);
             const isToday = index === 0;
@@ -64,29 +62,48 @@ export default function WeatherDashboardContent({ daily, hourly }: { daily: any;
             return (
               <div 
                 key={time} 
-                className={`flex items-center justify-between p-3.5 rounded-xl border transition-all ${isToday ? "bg-[#0D1B2A]/60 border-[#38BDF8]/40 shadow-md" : "bg-[#0D1B2A]/30 border-slate-700/40 hover:bg-[#0D1B2A]/50"}`}
+                className={`flex flex-col md:flex-row md:items-center justify-between p-4 rounded-2xl border transition-colors gap-4 ${isToday ? "bg-[#0D1B2A]/80 border-[#38BDF8]/40 shadow-md" : "bg-[#0D1B2A]/40 border-slate-700/50 hover:bg-[#0D1B2A]/70"}`}
               >
-                <div className="w-1/3 min-w-0">
-                  <p className="text-sm font-semibold capitalize truncate text-slate-200">
-                    {isToday ? "Aujourd'hui" : date.toLocaleDateString("fr-FR", { weekday: "long", day: "numeric" })}
-                  </p>
-                  <p className="text-[11px] text-slate-400 capitalize">{date.toLocaleDateString("fr-FR", { month: "short" })}</p>
-                </div>
-
-                <div className="flex items-center justify-center gap-4 w-1/3 text-center">
-                  <span className="text-xl">{getWeatherIcon(daily.weather_code[index])}</span>
-                  {daily.precipitation_probability_max[index] > 20 && (
-                    <span className="text-xs font-medium text-[#38BDF8] font-mono">{daily.precipitation_probability_max[index]}%</span>
-                  )}
-                </div>
-
-                <div className="w-1/3 flex items-center justify-end gap-3">
-                  <div className="text-right font-mono text-xs">
-                    <span className="font-bold text-orange-400 text-sm">{Math.round(daily.temperature_2m_max[index])}°</span>
-                    <span className="text-slate-500 mx-1">/</span>
-                    <span className="text-slate-400">{Math.round(daily.temperature_2m_min[index])}°</span>
+                {/* 1. Date et Icône principale */}
+                <div className="flex items-center gap-4 md:w-1/4">
+                  <div className="w-12 h-12 flex items-center justify-center bg-[#1B263B] rounded-xl border border-slate-700 shadow-inner text-2xl shrink-0">
+                    {getWeatherIcon(daily.weather_code[index])}
                   </div>
-                  <ChevronRight size={14} className="text-slate-600" />
+                  <div className="min-w-0">
+                    <p className="font-bold text-slate-100 capitalize truncate">
+                      {isToday ? "Aujourd'hui" : date.toLocaleDateString("fr-FR", { weekday: "long" })}
+                    </p>
+                    <p className="text-xs text-slate-400">{date.toLocaleDateString("fr-FR", { day: "numeric", month: "long" })}</p>
+                  </div>
+                </div>
+
+                {/* 2. Températures Min/Max */}
+                <div className="flex items-center gap-2 md:w-1/5">
+                  <span className="font-bold text-lg text-orange-400">{Math.round(daily.temperature_2m_max[index])}°</span>
+                  <span className="text-slate-500">/</span>
+                  <span className="font-medium text-slate-400">{Math.round(daily.temperature_2m_min[index])}°</span>
+                </div>
+
+                {/* 3. Statistiques détaillées (Pluie, Vent, UV) */}
+                <div className="grid grid-cols-3 gap-4 md:w-1/2 text-xs font-medium text-slate-300">
+                  <div className="flex flex-col gap-1">
+                    <div className="flex items-center gap-1.5 text-[#38BDF8]">
+                      <Droplets size={14} /> <span className="font-semibold">{daily.precipitation_sum[index]} mm</span>
+                    </div>
+                    {daily.precipitation_probability_max[index] > 0 && (
+                      <span className="text-slate-500 text-[10px] ml-5">{daily.precipitation_probability_max[index]}% de risque</span>
+                    )}
+                  </div>
+                  
+                  <div className="flex items-center gap-1.5">
+                    <Wind size={14} className="text-violet-400" />
+                    <span className="font-mono">{Math.round(daily.wind_speed_10m_max[index])} km/h</span>
+                  </div>
+                  
+                  <div className="flex items-center gap-1.5">
+                    <Sun size={14} className="text-[#FBBF24]" />
+                    <span className="font-mono">UV max {Math.round(daily.uv_index_max[index])}</span>
+                  </div>
                 </div>
               </div>
             );
@@ -94,11 +111,10 @@ export default function WeatherDashboardContent({ daily, hourly }: { daily: any;
         </div>
       </div>
 
-      {/* GRAPHIQUE INTERACTIF COMPLET */}
+      {/* GRAPHIQUE INTERACTIF */}
       <div className="w-full">
         <WeatherChart data={chartData} daysCount={daysCount} />
       </div>
-
     </section>
   );
 }
