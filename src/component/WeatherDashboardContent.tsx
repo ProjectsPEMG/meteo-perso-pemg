@@ -32,6 +32,44 @@ const getTempColor = (temp: number) => {
   return '#f97316';
 };
 
+// === NOUVEAU : Fonction pour colorer dynamiquement la ligne selon la météo ===
+const getRowTheme = (code: number, isDayTheme: boolean, isToday: boolean) => {
+  let bg = "";
+  let border = isDayTheme ? "border-slate-200" : "border-slate-700/50";
+  
+  const isSun = code === 0 || code === 1;
+  const isCloud = code === 2 || code === 3 || code === 45 || code === 48;
+  const isRain = [51,53,55,56,57,61,63,65,66,67,80,81,82].includes(code);
+  const isSnow = [71,73,75,77,85,86].includes(code);
+  const isStorm = [95,96,99].includes(code);
+
+  if (isDayTheme) {
+    if (isSun) bg = "bg-orange-50/60 hover:bg-orange-100/80";
+    else if (isCloud) bg = "bg-slate-50/80 hover:bg-slate-100";
+    else if (isRain) bg = "bg-sky-100/50 hover:bg-sky-100/80";
+    else if (isSnow) bg = "bg-indigo-50/80 hover:bg-indigo-100";
+    else if (isStorm) bg = "bg-purple-100/50 hover:bg-purple-100/80";
+    else bg = "bg-white hover:bg-slate-50";
+    
+    if (isToday) border = "border-[#38BDF8]/60 shadow-sm";
+  } else {
+    if (isSun) bg = "bg-[#0D1B2A]/40 hover:bg-[#0D1B2A]/70";
+    else if (isCloud) bg = "bg-slate-800/20 hover:bg-slate-800/40";
+    else if (isRain) bg = "bg-sky-900/20 hover:bg-sky-900/40";
+    else if (isSnow) bg = "bg-indigo-900/20 hover:bg-indigo-900/40";
+    else if (isStorm) bg = "bg-purple-900/20 hover:bg-purple-900/40";
+    else bg = "bg-[#0D1B2A]/40 hover:bg-[#0D1B2A]/70";
+
+    if (isToday) {
+       border = "border-[#38BDF8]/50 shadow-md";
+       // On rend le fond de "Aujourd'hui" un tout petit peu plus visible la nuit
+       bg = bg.replace('/20', '/40').replace('/40', '/60'); 
+    }
+  }
+  
+  return `${bg} ${border}`;
+};
+
 export default function WeatherDashboardContent({ daily, hourly, isDayTheme = false }: { daily: any; hourly: any; isDayTheme?: boolean }) {
   const [daysCount, setDaysCount] = useState<number>(3);
   const [expandedDay, setExpandedDay] = useState<string | null>(null);
@@ -59,8 +97,6 @@ export default function WeatherDashboardContent({ daily, hourly, isDayTheme = fa
   const themeBorder = isDayTheme ? "border-slate-200" : "border-slate-700";
   const themeTextMuted = isDayTheme ? "text-slate-500" : "text-slate-400";
   const themeToggleBg = isDayTheme ? "bg-white" : "bg-[#0D1B2A]";
-  const themeRowBg = isDayTheme ? "bg-white hover:bg-slate-50" : "bg-[#0D1B2A]/40 hover:bg-[#0D1B2A]/70";
-  const themeRowToday = isDayTheme ? "bg-blue-50/50 border-blue-200" : "bg-[#0D1B2A]/80 border-[#38BDF8]/40";
 
   return (
     <section className="lg:col-span-2 flex flex-col gap-6 w-full">
@@ -149,11 +185,14 @@ export default function WeatherDashboardContent({ daily, hourly, isDayTheme = fa
               }
             }
 
+            // Calcul du fond coloré de la ligne !
+            const rowThemeClass = getRowTheme(representativeCode, isDayTheme, isToday);
+
             return (
               <div 
                 key={time} 
                 onClick={() => setExpandedDay(isExpanded ? null : time)}
-                className={`flex flex-col p-3 md:p-4 rounded-2xl border transition-all cursor-pointer select-none ${isToday ? themeRowToday : themeRowBg}`}
+                className={`flex flex-col p-3 md:p-4 rounded-2xl border transition-all cursor-pointer select-none ${rowThemeClass}`}
               >
                 {/* === LIGNE COMPACTE (Bande unique) === */}
                 <div className="flex items-center justify-between w-full gap-2">
@@ -213,7 +252,7 @@ export default function WeatherDashboardContent({ daily, hourly, isDayTheme = fa
                 {isExpanded && (
                   <div 
                     className={`mt-4 pt-4 border-t ${themeBorder} animate-in slide-in-from-top-2 duration-300`}
-                    onClick={(e) => e.stopPropagation()} // Empêche de refermer quand on scrolle horizontalement
+                    onClick={(e) => e.stopPropagation()}
                   >
                     <p className={`text-xs font-bold ${themeTextMuted} mb-3 ml-1 uppercase tracking-wider`}>Évolution de la journée</p>
                     <div className="flex gap-2 overflow-x-auto pb-3 [&::-webkit-scrollbar]:h-1.5 [&::-webkit-scrollbar-thumb]:bg-slate-300 dark:[&::-webkit-scrollbar-thumb]:bg-slate-600 [&::-webkit-scrollbar-thumb]:rounded-full [&::-webkit-scrollbar-track]:bg-transparent">
@@ -224,12 +263,10 @@ export default function WeatherDashboardContent({ daily, hourly, isDayTheme = fa
                         const hWindDir = hourly.wind_direction_10m ? getWindDirection(hourly.wind_direction_10m[hIndex]) : { label: '-', rotate: 0 };
                         const hUV = hourly.uv_index ? Math.round(hourly.uv_index[hIndex]) : 0;
                         const hIsDay = hourly.is_day ? hourly.is_day[hIndex] : 1;
-                        
-                        // NOUVEAU : Récupération de l'humidité
                         const hHum = hourly.relative_humidity_2m ? hourly.relative_humidity_2m[hIndex] : null;
 
                         return (
-                          <div key={hTime} className={`flex flex-col items-center justify-start gap-1 min-w-[72px] p-2 rounded-xl transition-colors border ${isDayTheme ? 'bg-slate-50 border-slate-200 hover:bg-white' : 'bg-[#0D1B2A]/50 border-slate-700/50 hover:bg-[#0D1B2A]'}`}>
+                          <div key={hTime} className={`flex flex-col items-center justify-start gap-1 min-w-[72px] p-2 rounded-xl transition-colors border ${isDayTheme ? 'bg-white/80 border-slate-200 hover:bg-white' : 'bg-[#0D1B2A]/50 border-slate-700/50 hover:bg-[#0D1B2A]'}`}>
                             
                             <span className={`text-[11px] font-medium ${themeTextMuted}`}>{hDate.getHours()}h</span>
                             
@@ -241,19 +278,20 @@ export default function WeatherDashboardContent({ daily, hourly, isDayTheme = fa
                             
                             <div className={`w-full h-px ${themeBorder} my-1`} />
                             
-                            <div className="flex flex-col items-center justify-center min-h-[30px] gap-0.5">
+                            {/* NOUVEAU : EMPILEMENT PLUIE / RISQUE / HUMIDITÉ */}
+                            <div className="flex flex-col items-center justify-center min-h-[40px] gap-0.5 w-full">
                               {hourly.precipitation[hIndex] > 0 ? (
-                                <>
-                                  <span className="text-[10px] text-[#38BDF8] font-bold leading-tight">{hourly.precipitation[hIndex]} mm</span>
-                                  {hourly.precipitation_probability[hIndex] > 0 && (
-                                    <span className={`text-[9px] ${themeTextMuted} leading-tight`}>{hourly.precipitation_probability[hIndex]}% de risq.</span>
-                                  )}
-                                </>
+                                <span className="text-[10px] text-[#38BDF8] font-bold leading-tight">{hourly.precipitation[hIndex]} mm</span>
                               ) : (
-                                <Droplets size={10} className={`${themeTextMuted} opacity-50`} />
+                                <Droplets size={10} className={`${themeTextMuted} opacity-50 mb-0.5`} />
                               )}
+                              
+                              <span className={`text-[9px] ${hourly.precipitation_probability[hIndex] > 0 ? 'text-[#38BDF8]' : themeTextMuted} font-medium leading-tight`}>
+                                {hourly.precipitation_probability[hIndex]}% pl.
+                              </span>
+
                               {hHum !== null && (
-                                <span className={`text-[9px] text-[#38BDF8]/70 font-medium leading-tight mt-1`}>{hHum}% hum.</span>
+                                <span className={`text-[9px] ${themeTextMuted} leading-tight`}>{hHum}% hum.</span>
                               )}
                             </div>
 
