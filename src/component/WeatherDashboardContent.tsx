@@ -297,10 +297,8 @@ export default function WeatherDashboardContent({ daily, hourly, isDayTheme = fa
       </div>
 
       <div className="w-full">
-        {/* Enveloppe protectrice pour le graphique en attendant sa mise à jour */}
-        <div className={isDayTheme ? "bg-[#0D1B2A] rounded-3xl p-1" : ""}>
-          <WeatherChart data={chartData} daysCount={daysCount} />
-        </div>
+        {/* On passe l'information du thème directement au composant graphique */}
+        <WeatherChart data={chartData} daysCount={daysCount} isDayTheme={isDayTheme} />
       </div>
     </section>
   );
