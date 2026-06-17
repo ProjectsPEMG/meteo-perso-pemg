@@ -32,7 +32,6 @@ const getTempColor = (temp: number) => {
   return '#f97316';
 };
 
-// === AJOUT DE isDayTheme dans les paramètres ===
 export default function WeatherDashboardContent({ daily, hourly, isDayTheme = false }: { daily: any; hourly: any; isDayTheme?: boolean }) {
   const [daysCount, setDaysCount] = useState<number>(3);
   const [expandedDay, setExpandedDay] = useState<string | null>(null);
@@ -55,7 +54,7 @@ export default function WeatherDashboardContent({ daily, hourly, isDayTheme = fa
 
   const dailyRows = daily.time.slice(0, daysCount);
 
-  // Variables de thème pour le tableau de bord
+  // Variables de thème
   const themeCardBg = isDayTheme ? "bg-white/70" : "bg-[#1B263B]";
   const themeBorder = isDayTheme ? "border-slate-200" : "border-slate-700";
   const themeTextMuted = isDayTheme ? "text-slate-500" : "text-slate-400";
@@ -83,13 +82,13 @@ export default function WeatherDashboardContent({ daily, hourly, isDayTheme = fa
       </div>
 
       {/* LISTE DES PRÉVISIONS JOURNALIÈRES */}
-      <div className={`${themeCardBg} backdrop-blur-sm p-6 rounded-3xl shadow-lg border ${themeBorder} transition-colors duration-1000`}>
+      <div className={`${themeCardBg} backdrop-blur-sm p-4 md:p-6 rounded-3xl shadow-lg border ${themeBorder} transition-colors duration-1000`}>
         <h3 className={`text-sm font-bold uppercase ${themeTextMuted} tracking-wider mb-4 flex items-center gap-2`}>
           <Calendar size={16} className="text-[#38BDF8]" />
           Prévisions détaillées
         </h3>
         
-        <div className="flex flex-col gap-3">
+        <div className="flex flex-col gap-2 md:gap-3">
           {dailyRows.map((time: string, index: number) => {
             const date = new Date(time);
             const isToday = index === 0;
@@ -97,9 +96,8 @@ export default function WeatherDashboardContent({ daily, hourly, isDayTheme = fa
 
             const dayMin = daily.temperature_2m_min[index];
             const dayMax = daily.temperature_2m_max[index];
-            const windDir = getWindDirection(daily.wind_direction_10m_dominant[index]);
 
-            // === ALGORITHME D'IMPACT DE LA MÉTÉO (Intact) ===
+            // === ALGORITHME D'IMPACT DE LA MÉTÉO ===
             const datePrefix = time.split('T')[0];
             const daytimeCodes: number[] = [];
             
@@ -115,7 +113,6 @@ export default function WeatherDashboardContent({ daily, hourly, isDayTheme = fa
               const counts: Record<number, number> = {};
               let maxCount = 0;
               let mostFrequentCode = daytimeCodes[0];
-              
               let badWeatherCount = 0;
               let worstCode = daytimeCodes[0];
               let worstSeverity = -1;
@@ -151,83 +148,73 @@ export default function WeatherDashboardContent({ daily, hourly, isDayTheme = fa
                 representativeCode = mostFrequentCode;
               }
             }
-            // =======================================================================
 
             return (
               <div 
                 key={time} 
-                className={`flex flex-col p-4 rounded-2xl border transition-colors ${isToday ? themeRowToday : themeRowBg}`}
+                onClick={() => setExpandedDay(isExpanded ? null : time)}
+                className={`flex flex-col p-3 md:p-4 rounded-2xl border transition-all cursor-pointer select-none ${isToday ? themeRowToday : themeRowBg}`}
               >
-                <div className="flex flex-col md:flex-row md:items-center w-full gap-4 md:gap-0">
+                {/* === LIGNE COMPACTE (Bande unique) === */}
+                <div className="flex items-center justify-between w-full gap-2">
                   
-                  <div className="flex items-center gap-4 md:w-[220px] shrink-0">
-                    <div className={`w-12 h-12 flex items-center justify-center ${themeToggleBg} rounded-xl border ${themeBorder} shadow-sm text-2xl shrink-0`}>
+                  {/* ICON & DATE */}
+                  <div className="flex items-center gap-3 w-[100px] md:w-[150px] shrink-0">
+                    <div className={`w-10 h-10 md:w-12 md:h-12 flex items-center justify-center ${themeToggleBg} rounded-xl border ${themeBorder} shadow-sm text-2xl shrink-0`}>
                       {getWeatherIcon(representativeCode, 1)}
                     </div>
                     <div className="min-w-0">
-                      <p className="font-bold capitalize truncate text-sm md:text-base">
-                        {isToday ? "Aujourd'hui" : date.toLocaleDateString("fr-FR", { weekday: "long" })}
+                      <p className="font-bold capitalize truncate text-sm md:text-base leading-tight">
+                        {isToday ? "Auj." : date.toLocaleDateString("fr-FR", { weekday: "short" })}.
                       </p>
-                      <p className={`text-xs ${themeTextMuted}`}>{date.toLocaleDateString("fr-FR", { day: "numeric", month: "long" })}</p>
+                      <p className={`text-[10px] md:text-xs ${themeTextMuted} truncate hidden sm:block`}>
+                        {date.toLocaleDateString("fr-FR", { day: "numeric", month: "short" })}
+                      </p>
                     </div>
                   </div>
 
-                  <div className="flex items-center gap-2 md:w-[120px] shrink-0">
-                    <span className="font-bold text-2xl drop-shadow-sm" style={{ color: getTempColor(dayMax) }}>
+                  {/* TEMPS (Min/Max) */}
+                  <div className="flex items-center justify-center gap-1.5 w-[65px] md:w-[90px] shrink-0">
+                    <span className="font-bold text-base md:text-xl drop-shadow-sm" style={{ color: getTempColor(dayMax) }}>
                       {Math.round(dayMax)}°
                     </span>
-                    <span className="text-slate-400 text-lg">/</span>
-                    <span className="font-semibold text-lg drop-shadow-sm" style={{ color: getTempColor(dayMin) }}>
+                    <span className={`text-[10px] md:text-xs ${themeTextMuted}`}>/</span>
+                    <span className="font-semibold text-xs md:text-base opacity-80" style={{ color: getTempColor(dayMin) }}>
                       {Math.round(dayMin)}°
                     </span>
                   </div>
 
-                  <div className={`grid grid-cols-3 gap-2 md:flex md:items-start md:gap-0 shrink-0 text-xs font-medium`}>
-                    <div className="flex flex-col md:w-[100px]">
-                      <div className="flex items-center gap-1.5 text-[#38BDF8]">
-                        <Droplets size={14} className="shrink-0" /> 
-                        <span className="truncate">{daily.precipitation_sum[index]} mm</span>
-                      </div>
-                      <div className="h-[16px] flex items-center mt-0.5">
-                        {daily.precipitation_probability_max[index] > 0 && (
-                          <span className={`text-[10px] ml-5 truncate ${themeTextMuted}`}>{daily.precipitation_probability_max[index]}% de risque</span>
-                        )}
-                      </div>
+                  {/* STATS COMPACTES (Pluie & Vent) */}
+                  <div className={`flex items-center justify-end gap-3 md:gap-6 flex-grow text-[10px] md:text-xs font-medium ${isDayTheme ? 'text-slate-700' : 'text-slate-300'}`}>
+                    
+                    {/* Pluie */}
+                    <div className="flex items-center gap-1">
+                      <Droplets size={14} className="text-[#38BDF8] shrink-0" /> 
+                      <span className="hidden sm:inline">{daily.precipitation_sum[index]} mm</span>
+                      <span className="sm:hidden">{daily.precipitation_probability_max[index]}%</span>
                     </div>
                     
-                    <div className="flex flex-col md:w-[100px]">
-                      <div className="flex items-center gap-1.5">
-                        <Wind size={14} className="text-violet-400 shrink-0" />
-                        <span className="font-mono truncate">{Math.round(daily.wind_speed_10m_max[index])} km/h</span>
-                      </div>
-                      <div className={`h-[16px] flex items-center gap-1 text-[10px] ml-5 mt-0.5 ${themeTextMuted}`}>
-                        <Navigation size={10} style={{ transform: `rotate(${windDir.rotate}deg)` }} className="shrink-0" />
-                        <span className="truncate">{windDir.label}</span>
-                      </div>
-                    </div>
-                    
-                    <div className="flex flex-col md:w-[80px]">
-                      <div className="flex items-center gap-1.5">
-                        <Sun size={14} className="text-[#FBBF24] shrink-0" />
-                        <span className="font-mono truncate">UV {Math.round(daily.uv_index_max[index])}</span>
-                      </div>
+                    {/* Vent */}
+                    <div className="flex items-center gap-1">
+                      <Wind size={14} className="text-violet-400 shrink-0" />
+                      <span>{Math.round(daily.wind_speed_10m_max[index])} <span className="hidden sm:inline">km/h</span></span>
                     </div>
                   </div>
 
-                  <div className="mt-2 md:mt-0 md:flex-grow flex md:justify-end shrink-0">
-                    <button 
-                      onClick={() => setExpandedDay(isExpanded ? null : time)}
-                      className={`flex items-center justify-center w-full md:w-auto gap-1 text-xs font-bold px-3 py-1.5 rounded-lg transition-colors ${isExpanded ? "bg-[#38BDF8]/20 text-[#38BDF8]" : `${isDayTheme ? 'bg-slate-100 hover:bg-slate-200 text-slate-500' : 'bg-slate-800 text-slate-400 hover:bg-slate-700'}`}`}
-                    >
-                      {isExpanded ? "Fermer" : "Voir +"}
+                  {/* CHEVRON INDICATEUR */}
+                  <div className="flex items-center justify-center shrink-0 ml-1 md:ml-3">
+                    <div className={`p-1.5 rounded-full transition-colors ${isExpanded ? "bg-[#38BDF8] text-white shadow-md" : `${themeToggleBg} ${themeTextMuted} border ${themeBorder}`}`}>
                       {isExpanded ? <ChevronUp size={14} /> : <ChevronDown size={14} />}
-                    </button>
+                    </div>
                   </div>
                 </div>
 
-                {/* ACCORDÉON : DÉTAIL HEURE PAR HEURE */}
+                {/* === ACCORDÉON : DÉTAIL HEURE PAR HEURE === */}
                 {isExpanded && (
-                  <div className={`mt-4 pt-4 border-t ${themeBorder} animate-in slide-in-from-top-2 duration-300`}>
+                  <div 
+                    className={`mt-4 pt-4 border-t ${themeBorder} animate-in slide-in-from-top-2 duration-300`}
+                    onClick={(e) => e.stopPropagation()} // Empêche de refermer quand on scrolle horizontalement
+                  >
                     <p className={`text-xs font-bold ${themeTextMuted} mb-3 ml-1 uppercase tracking-wider`}>Évolution de la journée</p>
                     <div className="flex gap-2 overflow-x-auto pb-3 [&::-webkit-scrollbar]:h-1.5 [&::-webkit-scrollbar-thumb]:bg-slate-300 dark:[&::-webkit-scrollbar-thumb]:bg-slate-600 [&::-webkit-scrollbar-thumb]:rounded-full [&::-webkit-scrollbar-track]:bg-transparent">
                       {hourly.time.map((hTime: string, hIndex: number) => {
@@ -237,6 +224,9 @@ export default function WeatherDashboardContent({ daily, hourly, isDayTheme = fa
                         const hWindDir = hourly.wind_direction_10m ? getWindDirection(hourly.wind_direction_10m[hIndex]) : { label: '-', rotate: 0 };
                         const hUV = hourly.uv_index ? Math.round(hourly.uv_index[hIndex]) : 0;
                         const hIsDay = hourly.is_day ? hourly.is_day[hIndex] : 1;
+                        
+                        // NOUVEAU : Récupération de l'humidité
+                        const hHum = hourly.relative_humidity_2m ? hourly.relative_humidity_2m[hIndex] : null;
 
                         return (
                           <div key={hTime} className={`flex flex-col items-center justify-start gap-1 min-w-[72px] p-2 rounded-xl transition-colors border ${isDayTheme ? 'bg-slate-50 border-slate-200 hover:bg-white' : 'bg-[#0D1B2A]/50 border-slate-700/50 hover:bg-[#0D1B2A]'}`}>
@@ -251,16 +241,19 @@ export default function WeatherDashboardContent({ daily, hourly, isDayTheme = fa
                             
                             <div className={`w-full h-px ${themeBorder} my-1`} />
                             
-                            <div className="flex flex-col items-center justify-center min-h-[24px]">
+                            <div className="flex flex-col items-center justify-center min-h-[30px] gap-0.5">
                               {hourly.precipitation[hIndex] > 0 ? (
                                 <>
                                   <span className="text-[10px] text-[#38BDF8] font-bold leading-tight">{hourly.precipitation[hIndex]} mm</span>
                                   {hourly.precipitation_probability[hIndex] > 0 && (
-                                    <span className={`text-[9px] ${themeTextMuted} leading-tight`}>{hourly.precipitation_probability[hIndex]}%</span>
+                                    <span className={`text-[9px] ${themeTextMuted} leading-tight`}>{hourly.precipitation_probability[hIndex]}% de risq.</span>
                                   )}
                                 </>
                               ) : (
                                 <Droplets size={10} className={`${themeTextMuted} opacity-50`} />
+                              )}
+                              {hHum !== null && (
+                                <span className={`text-[9px] text-[#38BDF8]/70 font-medium leading-tight mt-1`}>{hHum}% hum.</span>
                               )}
                             </div>
 
@@ -297,7 +290,6 @@ export default function WeatherDashboardContent({ daily, hourly, isDayTheme = fa
       </div>
 
       <div className="w-full">
-        {/* On passe l'information du thème directement au composant graphique */}
         <WeatherChart data={chartData} daysCount={daysCount} isDayTheme={isDayTheme} />
       </div>
     </section>
