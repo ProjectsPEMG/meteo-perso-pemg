@@ -4,21 +4,32 @@
 import { useState, useEffect } from 'react';
 import { AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, ComposedChart, Bar, Line, ReferenceLine } from 'recharts';
 
-export default function WeatherChart({ data, daysCount }: { data: any[], daysCount: number }) {
+export default function WeatherChart({ data, daysCount, isDayTheme = false }: { data: any[], daysCount: number, isDayTheme?: boolean }) {
   const [activeTab, setActiveTab] = useState<'temp' | 'rain' | 'aq' | 'wind'>('temp');
-  
-  // NOUVEAU : État pour vérifier si le composant est chargé sur le navigateur
   const [isMounted, setIsMounted] = useState(false);
 
   useEffect(() => {
     setIsMounted(true);
   }, []);
 
+  // Variables de thème pour le graphique
+  const themeCardBg = isDayTheme ? "bg-white/70" : "bg-[#1B263B]";
+  const themeBorder = isDayTheme ? "border-slate-200" : "border-slate-700";
+  const themeText = isDayTheme ? "text-slate-800" : "text-slate-300";
+  const themeTextMuted = isDayTheme ? "text-slate-500" : "text-slate-400";
+  const themeToggleBg = isDayTheme ? "bg-white" : "bg-[#0D1B2A]";
+  const themeTooltipBg = isDayTheme ? "bg-white" : "bg-[#0D1B2A]";
+  const themeTooltipBorder = isDayTheme ? "border-slate-200" : "border-slate-700";
+  
+  // Couleurs Recharts
+  const gridColor = isDayTheme ? "#E2E8F0" : "#334155";
+  const axisColor = isDayTheme ? "#64748B" : "#64748B";
+
   const CustomTooltip = ({ active, payload }: any) => {
     if (active && payload && payload.length) {
       return (
-        <div className="bg-[#0D1B2A] p-3 border border-slate-700 rounded-lg shadow-xl font-sans z-50">
-          <p className="text-slate-400 text-xs mb-1">{payload[0].payload.dateFull}</p>
+        <div className={`${themeTooltipBg} p-3 border ${themeTooltipBorder} rounded-lg shadow-xl font-sans z-50 transition-colors`}>
+          <p className={`${themeTextMuted} text-xs mb-1`}>{payload[0].payload.dateFull}</p>
           {payload.map((entry: any, index: number) => (
             <p key={index} style={{ color: entry.color }} className="text-sm font-bold">
               {entry.name}: {Math.round(entry.value)} {entry.unit}
@@ -38,35 +49,33 @@ export default function WeatherChart({ data, daysCount }: { data: any[], daysCou
   const isLongPeriod = daysCount > 3;
 
   return (
-    <div className="w-full bg-[#1B263B] p-5 rounded-3xl shadow-xl border border-slate-700 flex flex-col h-[400px]">
+    <div className={`w-full ${themeCardBg} backdrop-blur-sm p-5 rounded-3xl shadow-lg border ${themeBorder} flex flex-col h-[400px] transition-colors duration-1000`}>
       
       <div className="flex flex-wrap justify-between items-center mb-6 gap-2">
-        <h3 className="text-slate-300 font-semibold text-sm">Analyses Graphiques Dynamiques</h3>
-        <div className="flex flex-wrap bg-[#0D1B2A] p-1 rounded-xl border border-slate-700 text-xs font-medium">
-          <button onClick={() => setActiveTab('temp')} className={`px-3 py-1.5 rounded-lg transition-colors ${activeTab === 'temp' ? 'bg-[#F97316] text-white' : 'text-slate-400 hover:text-slate-200'}`}>
+        <h3 className={`${themeText} font-semibold text-sm`}>Analyses Graphiques Dynamiques</h3>
+        <div className={`flex flex-wrap ${themeToggleBg} p-1 rounded-xl border ${themeBorder} text-xs font-medium`}>
+          <button onClick={() => setActiveTab('temp')} className={`px-3 py-1.5 rounded-lg transition-colors ${activeTab === 'temp' ? 'bg-[#F97316] text-white shadow-sm' : `${themeTextMuted} hover:opacity-70`}`}>
             Température
           </button>
-          <button onClick={() => setActiveTab('rain')} className={`px-3 py-1.5 rounded-lg transition-colors ${activeTab === 'rain' ? 'bg-[#38BDF8] text-white' : 'text-slate-400 hover:text-slate-200'}`}>
+          <button onClick={() => setActiveTab('rain')} className={`px-3 py-1.5 rounded-lg transition-colors ${activeTab === 'rain' ? 'bg-[#38BDF8] text-white shadow-sm' : `${themeTextMuted} hover:opacity-70`}`}>
             Pluie & Humidité
           </button>
-          <button onClick={() => setActiveTab('wind')} className={`px-3 py-1.5 rounded-lg transition-colors ${activeTab === 'wind' ? 'bg-[#A78BFA] text-white' : 'text-slate-400 hover:text-slate-200'}`}>
+          <button onClick={() => setActiveTab('wind')} className={`px-3 py-1.5 rounded-lg transition-colors ${activeTab === 'wind' ? 'bg-[#A78BFA] text-white shadow-sm' : `${themeTextMuted} hover:opacity-70`}`}>
             Vent & Rafales
           </button>
-          <button onClick={() => setActiveTab('aq')} className={`px-3 py-1.5 rounded-lg transition-colors ${activeTab === 'aq' ? 'bg-[#34D399] text-white' : 'text-slate-400 hover:text-slate-200'}`}>
+          <button onClick={() => setActiveTab('aq')} className={`px-3 py-1.5 rounded-lg transition-colors ${activeTab === 'aq' ? 'bg-[#34D399] text-white shadow-sm' : `${themeTextMuted} hover:opacity-70`}`}>
             Pollution & Pollen
           </button>
         </div>
       </div>
 
       <div className="flex-grow w-full min-h-0">
-        {/* NOUVEAU : On n'affiche le ResponsiveContainer que si on est sur le navigateur */}
         {isMounted && (
           <ResponsiveContainer width="100%" height="100%" minWidth={1} minHeight={1}>
             <ComposedChart data={data} margin={{ top: 20, right: 10, left: -25, bottom: 0 }}>
-              // Dans src/components/WeatherChart.tsx
               <XAxis 
                 dataKey="uniqueTime" 
-                stroke="#64748B" 
+                stroke={axisColor} 
                 fontSize={10} 
                 tickLine={false} 
                 axisLine={false} 
@@ -75,15 +84,15 @@ export default function WeatherChart({ data, daysCount }: { data: any[], daysCou
                   const date = new Date(val);
                   return isLongPeriod 
                     ? date.toLocaleDateString('fr-FR', { day: '2-digit', month: '2-digit' })
-                    : date.getHours() + 'h'; // Extraction directe pour éviter le double "hh"
+                    : date.getHours() + 'h';
                 }}
               />
-              <YAxis stroke="#64748B" fontSize={10} tickLine={false} axisLine={false} />
-              <CartesianGrid strokeDasharray="3 3" stroke="#334155" vertical={false} />
+              <YAxis stroke={axisColor} fontSize={10} tickLine={false} axisLine={false} />
+              <CartesianGrid strokeDasharray="3 3" stroke={gridColor} vertical={false} />
               <Tooltip content={<CustomTooltip />} />
               
               {midnightIndexes.map((index) => (
-                 <ReferenceLine key={`mid-${index}`} x={data[index].uniqueTime} stroke="#475569" strokeDasharray="4 4" />
+                 <ReferenceLine key={`mid-${index}`} x={data[index].uniqueTime} stroke={axisColor} strokeDasharray="4 4" />
               ))}
 
               {activeTab === 'temp' && [
