@@ -12,7 +12,7 @@ export default function WeatherChart({ data, daysCount, isDayTheme = false }: { 
     setIsMounted(true);
   }, []);
 
-  // Variables de thème pour le graphique
+  // === VARIABLES DE THÈME DYNAMIQUE ===
   const themeCardBg = isDayTheme ? "bg-white/70" : "bg-[#1B263B]";
   const themeBorder = isDayTheme ? "border-slate-200" : "border-slate-700";
   const themeText = isDayTheme ? "text-slate-800" : "text-slate-300";
@@ -21,7 +21,7 @@ export default function WeatherChart({ data, daysCount, isDayTheme = false }: { 
   const themeTooltipBg = isDayTheme ? "bg-white" : "bg-[#0D1B2A]";
   const themeTooltipBorder = isDayTheme ? "border-slate-200" : "border-slate-700";
   
-  // Couleurs Recharts
+  // Couleurs de la grille et des axes
   const gridColor = isDayTheme ? "#E2E8F0" : "#334155";
   const axisColor = isDayTheme ? "#64748B" : "#64748B";
 
@@ -52,8 +52,8 @@ export default function WeatherChart({ data, daysCount, isDayTheme = false }: { 
     <div className={`w-full ${themeCardBg} backdrop-blur-sm p-5 rounded-3xl shadow-lg border ${themeBorder} flex flex-col h-[400px] transition-colors duration-1000`}>
       
       <div className="flex flex-wrap justify-between items-center mb-6 gap-2">
-        <h3 className={`${themeText} font-semibold text-sm`}>Analyses Graphiques Dynamiques</h3>
-        <div className={`flex flex-wrap ${themeToggleBg} p-1 rounded-xl border ${themeBorder} text-xs font-medium`}>
+        <h3 className={`${themeText} font-semibold text-sm transition-colors`}>Analyses Graphiques Dynamiques</h3>
+        <div className={`flex flex-wrap ${themeToggleBg} p-1 rounded-xl border ${themeBorder} text-xs font-medium transition-colors`}>
           <button onClick={() => setActiveTab('temp')} className={`px-3 py-1.5 rounded-lg transition-colors ${activeTab === 'temp' ? 'bg-[#F97316] text-white shadow-sm' : `${themeTextMuted} hover:opacity-70`}`}>
             Température
           </button>
