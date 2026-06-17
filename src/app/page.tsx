@@ -109,10 +109,10 @@ export default async function Dashboard({
 
           <div className="flex w-full md:flex-1 items-center justify-between md:justify-end gap-4">
             <div className="flex-grow md:max-w-md">
-              <SearchBar />
+              <SearchBar isDayTheme={isDayTheme} />
             </div>
             <div className="flex gap-3 shrink-0 relative">
-              <FavoritesDropdown />
+              <FavoritesDropdown isDayTheme={isDayTheme} />
               <Link href="/map" className={`p-2 ${themeCardBg} rounded-full hover:opacity-80 transition shadow-sm`}>
                 <Map size={20} className="text-[#34D399]" />
               </Link>
