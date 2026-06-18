@@ -32,7 +32,7 @@ const getTempColor = (temp: number) => {
   return '#f97316';
 };
 
-// === NOUVEAU : Fonction pour colorer dynamiquement la ligne selon la météo ===
+// === Fonction pour colorer dynamiquement la ligne selon la météo ===
 const getRowTheme = (code: number, isDayTheme: boolean, isToday: boolean) => {
   let bg = "";
   let border = isDayTheme ? "border-slate-200" : "border-slate-700/50";
@@ -254,7 +254,9 @@ export default function WeatherDashboardContent({ daily, hourly, isDayTheme = fa
                     className={`mt-4 pt-4 border-t ${themeBorder} animate-in slide-in-from-top-2 duration-300`}
                     onClick={(e) => e.stopPropagation()}
                   >
-                    <p className={`text-xs font-bold ${themeTextMuted} mb-3 ml-1 uppercase tracking-wider`}>Évolution de la journée</p>
+                    <p className={`text-xs font-bold ${themeTextMuted} mb-3 ml-1 uppercase tracking-wider`}>
+                      Évolution de la journée - {date.toLocaleDateString("fr-FR", { day: "2-digit", month: "2-digit" })}
+                    </p>
                     <div className="flex gap-2 overflow-x-auto pb-3 [&::-webkit-scrollbar]:h-1.5 [&::-webkit-scrollbar-thumb]:bg-slate-300 dark:[&::-webkit-scrollbar-thumb]:bg-slate-600 [&::-webkit-scrollbar-thumb]:rounded-full [&::-webkit-scrollbar-track]:bg-transparent">
                       {hourly.time.map((hTime: string, hIndex: number) => {
                         if (!hTime.startsWith(time.split('T')[0])) return null;
