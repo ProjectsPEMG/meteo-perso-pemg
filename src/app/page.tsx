@@ -7,7 +7,7 @@ import FavoriteButton from "@/component/FavoriteButton";
 import FavoritesDropdown from "@/component/FavoritesDropdown";
 import { Wind, Droplets, Sun, Map, Sunrise } from "lucide-react";
 
-// === NOUVEAU : COMPOSANT DE FOND ANIMÉ ET COHÉRENT ===
+// === COMPOSANT DE FOND ANIMÉ ET COHÉRENT ===
 const WeatherBackground = ({ code, isDay, currentTs, sunriseTs, sunsetTs }: any) => {
   const isSunrise = Math.abs(currentTs - sunriseTs) < 3600000; // 1h autour du lever
   const isSunset = Math.abs(currentTs - sunsetTs) < 3600000; // 1h autour du coucher
@@ -66,7 +66,7 @@ const WeatherBackground = ({ code, isDay, currentTs, sunriseTs, sunsetTs }: any)
 
       {/* NUAGES */}
       {(isCloud || isRain || isSnow || isStorm) && clouds.map((c, i) => (
-        <div key={`cloud-${i}`} className="absolute bg-white rounded-full blur-3xl" style={{ top: c.top, width: c.width, height: c.height, opacity: !isDayTheme ? c.opacity * 0.2 : c.opacity, animation: `cloudDrift ${c.duration} linear infinite ${c.delay}` }}></div>
+        <div key={`cloud-${i}`} className="absolute bg-white rounded-full blur-3xl" style={{ top: c.top, width: c.width, height: c.height, opacity: !isDay ? c.opacity * 0.2 : c.opacity, animation: `cloudDrift ${c.duration} linear infinite ${c.delay}` }}></div>
       ))}
 
       {/* PLUIE */}
