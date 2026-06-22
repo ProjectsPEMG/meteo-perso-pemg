@@ -5,19 +5,19 @@ import SearchBar from "@/component/SearchBar";
 import WeatherDashboardContent from "@/component/WeatherDashboardContent";
 import FavoriteButton from "@/component/FavoriteButton";
 import FavoritesDropdown from "@/component/FavoritesDropdown";
+import GeoLocator from "@/component/GeoLocator";
 import { Wind, Droplets, Sun, Map, Sunrise } from "lucide-react";
 
 // === COMPOSANT DE FOND ANIMÉ ET COHÉRENT ===
 const WeatherBackground = ({ code, isDay, currentTs, sunriseTs, sunsetTs }: any) => {
-  const isSunrise = Math.abs(currentTs - sunriseTs) < 3600000; // 1h autour du lever
-  const isSunset = Math.abs(currentTs - sunsetTs) < 3600000; // 1h autour du coucher
+  const isSunrise = Math.abs(currentTs - sunriseTs) < 3600000;
+  const isSunset = Math.abs(currentTs - sunsetTs) < 3600000;
   const isSun = code === 0 || code === 1;
   const isCloud = code === 2 || code === 3 || code === 45 || code === 48;
   const isRain = [51,53,55,56,57,61,63,65,66,67,80,81,82].includes(code);
   const isSnow = [71,73,75,77,85,86].includes(code);
   const isStorm = [95,96,99].includes(code);
 
-  // Génération déterministe d'éléments pour éviter les erreurs d'hydratation
   const rainDrops = Array.from({length: 40}).map((_, i) => ({ left: `${(i * 2.5)}%`, delay: `${(i % 5) * 0.15}s`, duration: `${0.5 + (i % 3) * 0.1}s` }));
   const stars = Array.from({length: 50}).map((_, i) => ({ left: `${(i * 7) % 100}%`, top: `${(i * 11) % 60}%`, delay: `${(i % 4) * 0.5}s`, size: i % 3 === 0 ? 'w-1.5 h-1.5' : 'w-1 h-1' }));
   const clouds = [ 
@@ -26,7 +26,6 @@ const WeatherBackground = ({ code, isDay, currentTs, sunriseTs, sunsetTs }: any)
     { top: '5%', delay: '-10s', duration: '45s', width: '250px', height: '80px', opacity: 0.5 } 
   ];
 
-  // Palette de couleurs pour un fond qui prend TOUT l'écran
   let bgClass = "";
   if (isSunrise && isDay) bgClass = "from-orange-300 via-rose-100 to-sky-200";
   else if (isSunrise && !isDay) bgClass = "from-orange-900 via-[#0D1B2A] to-[#0D1B2A]";
@@ -53,33 +52,27 @@ const WeatherBackground = ({ code, isDay, currentTs, sunriseTs, sunsetTs }: any)
         @keyframes lightning { 0%, 94%, 100% { opacity: 0; } 95%, 98% { opacity: 0.9; } }
       `}</style>
 
-      {/* SOLEIL OU LUNE */}
       {isSun && isDay && <div className="absolute top-20 right-20 md:right-40 w-48 h-48 bg-yellow-100 rounded-full blur-[80px] opacity-80 animate-pulse"></div>}
       {(!isDay && !isCloud && !isRain && !isStorm) && (
         <div className="absolute top-16 right-20 md:right-32 w-20 h-20 bg-slate-200 rounded-full blur-[2px] opacity-90 shadow-[0_0_60px_rgba(255,255,255,0.4)]"></div>
       )}
 
-      {/* ÉTOILES */}
       {(!isDay && !isCloud && !isRain && !isStorm) && stars.map((s, i) => (
         <div key={`star-${i}`} className={`absolute bg-white rounded-full ${s.size}`} style={{ left: s.left, top: s.top, animation: `twinkle 3s infinite ${s.delay}` }}></div>
       ))}
 
-      {/* NUAGES */}
       {(isCloud || isRain || isSnow || isStorm) && clouds.map((c, i) => (
         <div key={`cloud-${i}`} className="absolute bg-white rounded-full blur-3xl" style={{ top: c.top, width: c.width, height: c.height, opacity: !isDay ? c.opacity * 0.2 : c.opacity, animation: `cloudDrift ${c.duration} linear infinite ${c.delay}` }}></div>
       ))}
 
-      {/* PLUIE */}
       {isRain && rainDrops.map((r, i) => (
         <div key={`rain-${i}`} className="absolute top-0 w-[2px] h-12 bg-sky-300 blur-[1px]" style={{ left: r.left, animation: `rainFall ${r.duration} linear infinite ${r.delay}` }}></div>
       ))}
 
-      {/* NEIGE */}
       {isSnow && rainDrops.map((r, i) => (
         <div key={`snow-${i}`} className="absolute top-0 w-3 h-3 bg-white rounded-full blur-[1px]" style={{ left: r.left, animation: `snowFall ${r.duration} linear infinite ${r.delay}` }}></div>
       ))}
 
-      {/* ORAGE (Éclairs) */}
       {isStorm && <div className="absolute inset-0 bg-white mix-blend-overlay" style={{ animation: 'lightning 8s infinite' }}></div>}
     </div>
   );
@@ -91,6 +84,10 @@ export default async function Dashboard({
   searchParams: Promise<{ lat?: string; lon?: string; city?: string }>;
 }) {
   const params = await searchParams;
+  
+  // On vérifie si l'utilisateur a des paramètres dans l'URL
+  const hasLocationParams = !!(params.lat && params.lon);
+  
   const lat = params.lat ? parseFloat(params.lat) : 46.67;
   const lon = params.lon ? parseFloat(params.lon) : 5.55;
   const cityName = params.city || "Lons-le-Saunier";
@@ -121,10 +118,11 @@ export default async function Dashboard({
   return (
     <div className={`min-h-screen ${themeText} font-sans selection:bg-[#38BDF8]`}>
       
-      {/* On injecte le fond animé ici */}
+      {/* Composant invisible qui tente de géolocaliser l'utilisateur s'il n'a pas de ville */}
+      {!hasLocationParams && <GeoLocator />}
+
       <WeatherBackground code={current.weather_code} isDay={isDayTheme} currentTs={currentTs} sunriseTs={sunriseTs} sunsetTs={sunsetTs} />
 
-      {/* HEADER & NAVIGATION */}
       <header className={`sticky top-0 z-50 w-full ${themeHeaderBg} backdrop-blur-md border-b ${themeBorder} p-4 md:px-8 mb-6 shadow-sm transition-colors duration-1000`}>
         <div className="max-w-6xl mx-auto flex flex-col md:flex-row justify-between items-center gap-4">
           
@@ -157,10 +155,8 @@ export default async function Dashboard({
         </div>
       </header>
 
-      {/* CONTENU PRINCIPAL */}
       <main className="max-w-6xl mx-auto px-4 md:px-8 pb-8 grid grid-cols-1 lg:grid-cols-3 gap-6 items-start">
         
-        {/* HERO SECTION */}
         <section className={`lg:col-span-1 ${themeCardBg} backdrop-blur-xl p-6 rounded-3xl border ${themeBorder} shadow-lg relative overflow-hidden lg:sticky lg:top-28 transition-colors duration-1000`}>
           <div className="absolute -top-10 -right-10 text-9xl opacity-20 pointer-events-none drop-shadow-xl">
             {getWeatherIcon(current.weather_code, current.is_day)}
